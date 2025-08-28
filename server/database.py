@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
 
-from config import config
+from server.config import settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -34,11 +34,11 @@ class DatabaseManager:
         """Initialize SQLAlchemy engine with configuration."""
         try:
             self.engine = create_engine(
-                config.DATABASE_URL,
+                settings.DATABASE_URL,
                 future=True,
-                echo=config.DB_ECHO,
-                pool_pre_ping=config.DB_POOL_PRE_PING,
-                pool_recycle=config.DB_POOL_RECYCLE
+                echo=settings.DB_ECHO,
+                pool_pre_ping=settings.DB_POOL_PRE_PING,
+                pool_recycle=settings.DB_POOL_RECYCLE
             )
             
             self.SessionLocal = sessionmaker(
@@ -51,9 +51,9 @@ class DatabaseManager:
             logger.info(
                 "Database engine initialized successfully",
                 extra={
-                    "database_url": config.DATABASE_URL.split('@')[1] if '@' in config.DATABASE_URL else config.DATABASE_URL,
-                    "pool_recycle": config.DB_POOL_RECYCLE,
-                    "echo": config.DB_ECHO
+                    "database_url": settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else settings.DATABASE_URL,
+                    "pool_recycle": settings.DB_POOL_RECYCLE,
+                    "echo": settings.DB_ECHO
                 }
             )
             

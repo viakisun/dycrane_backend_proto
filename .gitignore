@@ -1,0 +1,17 @@
+# Virtual Environment
+.venv/
+venv/
+*.pyc
+__pycache__/
+
+# IDE / Editor files
+.vscode/
+.idea/
+
+# Test artifacts
+.pytest_cache/
+coverage.xml
+htmlcov/
+
+# dotenv
+.env
