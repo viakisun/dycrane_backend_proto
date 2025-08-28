@@ -86,6 +86,14 @@ class SiteCreate(BaseModel):
         }
     )
 
+class SiteUpdate(BaseModel):
+    """Schema for updating a site. All fields are optional."""
+    name: Optional[str] = None
+    address: Optional[str] = None
+    start_date: Optional[dt.date] = None
+    end_date: Optional[dt.date] = None
+    status: Optional[SiteStatus] = None
+
 
 class SiteApprove(BaseModel):
     """Schema for approving a construction site."""
@@ -256,3 +264,37 @@ class HealthCheckResponse(BaseModel):
     status: str = Field(..., description="Service status")
     timestamp: dt.datetime = Field(..., description="Current server time")
     database_healthy: bool = Field(..., description="Database connectivity status")
+
+
+# ========= USER SCHEMAS =========
+
+class UserBase(BaseModel):
+    email: Optional[str] = None
+    is_active: Optional[bool] = True
+    name: Optional[str] = None
+    role: Optional[UserRole] = None
+
+
+class UserCreate(UserBase):
+    email: str
+    password: str
+
+
+class UserUpdate(UserBase):
+    password: Optional[str] = None
+
+
+# ========= CRANE SCHEMAS =========
+
+class CraneBase(BaseModel):
+    model_name: Optional[str] = None
+    serial_no: Optional[str] = None
+    status: Optional[CraneStatus] = CraneStatus.NORMAL
+    owner_org_id: Optional[str] = None
+
+class CraneCreate(CraneBase):
+    model_name: str
+    owner_org_id: str
+
+class CraneUpdate(CraneBase):
+    pass
