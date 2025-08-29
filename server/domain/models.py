@@ -12,9 +12,9 @@ from sqlalchemy import (
     ForeignKey, Text, UniqueConstraint, func
 )
 
-from database import Base
-from schemas import (
-    UserRole, SiteStatus, CraneStatus, 
+from server.database import Base
+from server.domain.schemas import (
+    UserRole, SiteStatus, CraneStatus,
     AssignmentStatus, DocItemStatus, OrgType
 )
 
