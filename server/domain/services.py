@@ -116,3 +116,69 @@ class CraneService:
 user_service = UserService()
 site_service = SiteService(user_service=user_service)
 crane_service = CraneService()
+
+# ==============================================================================
+# TEMPORARY SERVICES - To be removed after full refactoring
+# ==============================================================================
+
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from typing import Any, Dict, Type, TypeVar
+from server.config import settings
+from server.domain.schemas import DocItemStatus
+from server.domain.models import Base, Org
+
+ModelType = TypeVar('ModelType', bound=Base)
+
+class StoredProcedureService:
+    @staticmethod
+    def execute_returning_row(
+        db: Session, sp_name: str, params: Dict[str, Any], model_class: Type[ModelType]
+    ) -> ModelType:
+        try:
+            param_placeholders = ", ".join([f":{key}" for key in params.keys()])
+            query = text(f"SELECT * FROM {sp_name}({param_placeholders})")
+            result = db.execute(query, params)
+            row = result.fetchone()
+            if not row:
+                raise HTTPException(status_code=500, detail="SP did not return result")
+            return model_class(**row._asdict())
+        except SQLAlchemyError as e:
+            db.rollback()
+            raise HTTPException(status_code=400, detail=str(e))
+
+    @staticmethod
+    def execute_returning_id(db: Session, sp_name: str, params: Dict[str, Any]) -> str:
+        try:
+            param_placeholders = ", ".join([f":{key}" for key in params.keys()])
+            query = text(f"SELECT {sp_name}({param_placeholders}) as id")
+            result = db.execute(query, params)
+            row = result.fetchone()
+            if not row or not row.id:
+                raise HTTPException(status_code=500, detail="SP did not return ID")
+            return str(row.id)
+        except SQLAlchemyError as e:
+            db.rollback()
+            raise HTTPException(status_code=400, detail=str(e))
+
+    @staticmethod
+    def execute_returning_status(db: Session, sp_name: str, params: Dict[str, Any]) -> DocItemStatus:
+        try:
+            param_placeholders = ", ".join([f":{key}" for key in params.keys()])
+            query = text(f"SELECT {sp_name}({param_placeholders}) as status")
+            result = db.execute(query, params)
+            row = result.fetchone()
+            if not row or not row.status:
+                raise HTTPException(status_code=500, detail="SP did not return status")
+            return DocItemStatus(row.status)
+        except (SQLAlchemyError, ValueError) as e:
+            db.rollback()
+            raise HTTPException(status_code=400, detail=str(e))
+
+class ValidationService:
+    @staticmethod
+    def validate_file_url(file_url: str) -> None:
+        if not file_url.startswith(settings.REQUIRED_URL_SCHEME + "://"):
+            raise HTTPException(status_code=400, detail="Only HTTPS URLs are allowed")
+        if not any(file_url.lower().endswith(ext) for ext in settings.ALLOWED_FILE_EXTENSIONS):
+            raise HTTPException(status_code=400, detail="File type not allowed")
