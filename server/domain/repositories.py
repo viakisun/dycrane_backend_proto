@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from server.domain.models import Base
+from server.domain.models import Base, Crane
 
 # Define custom types for SQLAlchemy models and Pydantic schemas
 ModelType = TypeVar("ModelType", bound=Base)
