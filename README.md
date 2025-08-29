@@ -70,6 +70,25 @@ To run the server, you can use `uvicorn` directly.
 uvicorn server.main:app --reload
 ```
 
+### Running the Frontend Test Client
+The `client` directory contains a TypeScript-based React application to visually test the API workflow.
+
+1.  **Navigate to the client directory:**
+    ```sh
+    cd client
+    ```
+
+2.  **Install dependencies:**
+    ```sh
+    npm install
+    ```
+
+3.  **Run the client:**
+    ```sh
+    npm run dev
+    ```
+    This will start the client on `http://localhost:3000`. The client will proxy API requests to the backend server running on port 8000.
+
 ## Project Status
 
 This project is currently in a transitional phase of refactoring from a monolithic structure with business logic in stored procedures to a modern, layered architecture with business logic in a Python-based service layer.
