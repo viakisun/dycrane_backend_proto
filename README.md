@@ -38,34 +38,36 @@ These instructions will get you a copy of the project up and running on your loc
 
 ## Usage
 
+### Development Scripts
+
 The development scripts are the main entry point for development tasks.
 
-### For Windows (PowerShell)
+**For Windows (PowerShell):**
 ```powershell
 # Initialize the database
 ./scripts/dev.ps1 -Command db
 
-# Run the E2E tests
+# Run all tests
 ./scripts/dev.ps1 -Command test
 
-# Run the E2E tests with verbose output
+# Run all tests with verbose output
 ./scripts/dev.ps1 -Command test/verbose
 ```
 
-### For Linux/macOS (Bash)
+**For Linux/macOS (Bash):**
 ```sh
 # Initialize the database
 ./scripts/dev.sh db
 
-# Run the E2E tests
+# Run all tests
 ./scripts/dev.sh test
 
-# Run the E2E tests with verbose output
+# Run all tests with verbose output
 ./scripts/dev.sh test/verbose
 ```
 
-### Running the API server directly
-To run the server, you can use `uvicorn` directly.
+### Running the API Server
+To run the API server directly for development, use `uvicorn`:
 ```sh
 uvicorn server.main:app --reload
 ```
@@ -88,6 +90,21 @@ The `client` directory contains a TypeScript-based React application to visually
     npm run dev
     ```
     This will start the client on `http://localhost:3000`. The client will proxy API requests to the backend server running on port 8000.
+
+## Testing
+
+This project includes both End-to-End (E2E) and unit tests to ensure the quality and correctness of the application.
+
+### Test Suites
+
+*   **End-to-End (E2E) Tests (`tests/e2e`):** These tests simulate the full user workflow from a client's perspective, making real HTTP requests to the API.
+    *   `test_workflow.py`: This test covers the 9-step business workflow. **Note:** This test is currently partially implemented and will be completed as the backend services are refactored.
+    *   `test_healthcheck.py`: A simple test to check if the API is running and connected to the database.
+
+*   **Unit Tests (`tests/unit`):** These tests cover individual components of the application in isolation.
+    *   `test_services.py`: Tests the business logic in the service layer.
+    *   `test_repositories.py`: Tests the data access logic in the repository layer using an in-memory SQLite database.
+    *   `test_routers.py`: Tests the API routers to ensure they handle requests and responses correctly.
 
 ## Project Status
 
