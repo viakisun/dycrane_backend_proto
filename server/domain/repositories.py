@@ -73,7 +73,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             The newly created model instance.
         """
         logger.debug(f"Creating new {self.model.__name__}")
-        obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data = obj_in.model_dump()
         db_obj = self.model(**obj_in_data)
         db.add(db_obj)
         db.commit()
@@ -141,7 +141,21 @@ class SiteRepository(BaseRepository[Site, SiteCreate, SiteUpdate]):
     # You can add site-specific methods here if needed
     pass
 
-class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
+import hashlib
+
+class UserRepository(BaseRepository[User, "UserCreate", "UserUpdate"]):
+    def create(self, db: Session, *, obj_in: "UserCreate") -> User:
+        # A real implementation would use a proper password hashing library like passlib
+        hashed_password = hashlib.sha256(obj_in.password.encode()).hexdigest()
+        create_data = obj_in.model_dump(exclude={"password"})
+        create_data["hashed_password"] = hashed_password
+
+        db_obj = self.model(**create_data)
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
         return db.query(User).filter(User.email == email).first()
 

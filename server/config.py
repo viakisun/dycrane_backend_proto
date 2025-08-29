@@ -26,11 +26,11 @@ class Settings(BaseSettings):
     E2E_BASE_URL: str = "http://127.0.0.1:8000"
 
     # Database Configuration
-    PGHOST: str
+    PGHOST: str = "localhost"
     PGPORT: int = 5432
-    PGUSER: str
-    PGPASSWORD: str
-    PGDATABASE: str
+    PGUSER: str = "postgres"
+    PGPASSWORD: str = "admin"
+    PGDATABASE: str = "craneops_test"
 
     # SQLAlchemy specific settings
     DB_ECHO: bool = False
@@ -48,6 +48,7 @@ class Settings(BaseSettings):
 
     # Logging Configuration
     LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     def get_log_level(self) -> int:
         """Convert string log level to logging constant."""

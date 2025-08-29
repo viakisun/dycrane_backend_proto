@@ -1,5 +1,5 @@
 import pytest
-from .client import ApiClient
+from tests.e2e.client import ApiClient
 
 @pytest.fixture(scope="session")
 def api_client() -> ApiClient:
