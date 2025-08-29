@@ -4,6 +4,8 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+from fastapi import HTTPException, status
 
 from server.domain.models import Base, Crane
 
@@ -75,11 +77,19 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         logger.debug(f"Creating new {self.model.__name__}")
         obj_in_data = obj_in.model_dump()
         db_obj = self.model(**obj_in_data)
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        logger.info(f"Created new {self.model.__name__} with id: {db_obj.id}")
-        return db_obj
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+            logger.info(f"Created new {self.model.__name__} with id: {db_obj.id}")
+            return db_obj
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"Database error on create: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Database error: {e}"
+            )
 
     def update(
         self,
