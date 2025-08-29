@@ -30,19 +30,27 @@ failure() {
 }
 
 # --- Prerequisite Checks ---
-install_dependencies() {
+activate_venv() {
+    if [ ! -d "$VENV_PATH" ]; then
+        sub_step "Virtual environment not found. Creating..."
+        python3 -m venv "$VENV_PATH"
+        if [ $? -ne 0 ]; then
+            failure "Failed to create virtual environment."
+        fi
+    fi
+
     sub_step "Installing/updating dependencies from $REQUIREMENTS_FILE..."
-    pip install -r "$REQUIREMENTS_FILE" --upgrade
+    "$VENV_PATH/bin/pip" install -r "$REQUIREMENTS_FILE" --upgrade
     if [ $? -ne 0 ]; then
         failure "Failed to install dependencies."
     fi
-    success "Dependencies are up to date."
+    success "Virtual environment is ready."
 }
 
 # --- Database Operations ---
 initialize_database() {
     step "Initializing Database"
-    python3 "$PROJECT_ROOT/scripts/db_runner.py" "full"
+    "$VENV_PATH/bin/python" "$PROJECT_ROOT/scripts/db_runner.py" "full"
     if [ $? -ne 0 ]; then
         failure "Database initialization failed with Python runner."
     fi
@@ -66,7 +74,7 @@ run_tests() {
 
     # 1. Start API server in the background
     sub_step "Starting API server in background..."
-    uvicorn server.main:app --host 127.0.0.1 --port 8000 &
+    "$VENV_PATH/bin/uvicorn" server.main:app --host 127.0.0.1 --port 8000 &
     SERVER_PID=$!
     sub_step "Server started with PID: $SERVER_PID"
 
@@ -98,7 +106,7 @@ run_tests() {
     fi
 
     sub_step "Executing pytest with arguments: $pytest_args"
-    pytest $pytest_args
+    "$VENV_PATH/bin/pytest" $pytest_args
     if [ $? -ne 0 ]; then
         failure "Pytest reported test failures."
     else
@@ -111,7 +119,7 @@ if [ -f "$DOTENV_FILE" ]; then
     export $(grep -v '^#' "$DOTENV_FILE" | xargs)
 fi
 
-install_dependencies
+activate_venv
 
 case "$1" in
     "db")
