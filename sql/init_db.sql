@@ -78,6 +78,7 @@ CREATE TABLE ops.users (
   id          TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   email       CITEXT UNIQUE NOT NULL,
   name        TEXT NOT NULL,
+  hashed_password TEXT NOT NULL,
   role        ops.user_role NOT NULL,
   is_active   BOOLEAN NOT NULL DEFAULT true,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
