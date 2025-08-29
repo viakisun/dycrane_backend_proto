@@ -7,7 +7,7 @@ import logging
 from contextlib import contextmanager
 from typing import Generator
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -105,7 +105,7 @@ class DatabaseManager:
         try:
             with self.get_session() as session:
                 # Simple query to test connectivity
-                result = session.execute("SELECT 1 as health_check")
+                result = session.execute(text("SELECT 1 as health_check"))
                 return result.fetchone() is not None
         except Exception as e:
             logger.error(f"Database health check failed: {e}")
