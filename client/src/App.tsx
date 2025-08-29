@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import './style.css';
-
 import { runWorkflow } from './workflow';
 
 const STEPS = [
@@ -15,19 +14,37 @@ const STEPS = [
   "9. 문서 검토 (Review Document)",
 ];
 
+type LogEntry = {
+  type: 'info' | 'error' | 'success' | 'request' | 'response';
+  message: string;
+  data?: any;
+};
+
 function App() {
-  const [logs, setLogs] = useState<string[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [stepStatus, setStepStatus] = useState<Record<number, 'pending' | 'success' | 'error'>>({});
 
   const handleRunWorkflow = async () => {
     setIsRunning(true);
-    setLogs(['Workflow started...']);
-    const workflowLogger = (message: string) => {
-      setLogs(prev => [...prev, message]);
+    setLogs([]);
+    setStepStatus({});
+
+    const workflowLogger = (message: string, data?: any) => {
+        const type = message.startsWith('ERROR') ? 'error' : message.startsWith('STEP') ? 'info' : 'success';
+        setLogs(prev => [...prev, { type, message, data }]);
     };
-    await runWorkflow(workflowLogger);
+
+    await runWorkflow(workflowLogger, setStepStatus);
     setIsRunning(false);
   };
+
+  const renderLogData = (data: any) => {
+    if (typeof data !== 'string') {
+        data = JSON.stringify(data, null, 2);
+    }
+    return <pre className="log-json">{data}</pre>;
+  }
 
   return (
     <div className="App">
@@ -46,17 +63,22 @@ function App() {
             <h2>Workflow Steps</h2>
             <ol>
               {STEPS.map((step, index) => (
-                <li key={index}>{step}</li>
+                <li key={index} className={stepStatus[index + 1] || 'pending'}>
+                  {step}
+                </li>
               ))}
             </ol>
           </div>
           <div className="log-output">
             <h2>Logs</h2>
-            <pre>
+            <div className="log-entries">
               {logs.map((log, index) => (
-                <div key={index}>{log}</div>
+                <div key={index} className={`log-entry log-${log.type}`}>
+                  <span className="log-message">{log.message}</span>
+                  {log.data && renderLogData(log.data)}
+                </div>
               ))}
-            </pre>
+            </div>
           </div>
         </div>
       </main>
