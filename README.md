@@ -17,7 +17,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 1.  **Clone the repository**
     ```sh
-    git clone <repository-url>
+    git clone https://github.com/viakisun/dycrane_backend_proto
     cd dycrane_backend_proto
     ```
 
@@ -38,28 +38,37 @@ These instructions will get you a copy of the project up and running on your loc
 
 ## Usage
 
-The `scripts/dev.sh` script is the main entry point for development tasks.
+The development scripts are the main entry point for development tasks.
 
-*   **Initialize the database:**
-    ```sh
-    ./scripts/dev.sh db
-    ```
+### For Windows (PowerShell)
+```powershell
+# Initialize the database
+./scripts/dev.ps1 -Command db
 
-*   **Run the E2E tests:**
-    ```sh
-    ./scripts/dev.sh test
-    ```
+# Run the E2E tests
+./scripts/dev.ps1 -Command test
 
-*   **Run the E2E tests with verbose output:**
-    ```sh
-    ./scripts/dev.sh test/verbose
-    ```
+# Run the E2E tests with verbose output
+./scripts/dev.ps1 -Command test/verbose
+```
 
-*   **Run the API server:**
-    To run the server, you can use `uvicorn` directly.
-    ```sh
-    uvicorn server.main:app --reload
-    ```
+### For Linux/macOS (Bash)
+```sh
+# Initialize the database
+./scripts/dev.sh db
+
+# Run the E2E tests
+./scripts/dev.sh test
+
+# Run the E2E tests with verbose output
+./scripts/dev.sh test/verbose
+```
+
+### Running the API server directly
+To run the server, you can use `uvicorn` directly.
+```sh
+uvicorn server.main:app --reload
+```
 
 ## Project Status
 
