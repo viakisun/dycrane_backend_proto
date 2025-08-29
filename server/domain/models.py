@@ -35,6 +35,7 @@ class User(Base, TimestampMixin):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String, unique=True, nullable=False, index=True)
     name = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), nullable=False, index=True)
     is_active = Column(Boolean, default=True, nullable=False)
     

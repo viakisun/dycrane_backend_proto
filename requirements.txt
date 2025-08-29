@@ -6,3 +6,5 @@ pydantic-settings
 pytest
 requests
 tenacity
+httpx
+pytest-dotenv
