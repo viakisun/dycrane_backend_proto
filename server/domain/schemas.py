@@ -298,3 +298,59 @@ class CraneCreate(CraneBase):
 
 class CraneUpdate(CraneBase):
     pass
+
+
+# ========= ASSIGNMENT SCHEMAS =========
+
+class SiteCraneAssignmentCreate(BaseModel):
+    site_id: str
+    crane_id: str
+    assigned_by: str
+    start_date: dt.date
+    end_date: Optional[dt.date] = None
+
+class SiteCraneAssignmentUpdate(BaseModel):
+    status: Optional[AssignmentStatus] = None
+
+class DriverAssignmentCreate(BaseModel):
+    site_crane_id: str
+    driver_id: str
+    start_date: dt.date
+    end_date: Optional[dt.date] = None
+
+class DriverAssignmentUpdate(BaseModel):
+    status: Optional[AssignmentStatus] = None
+
+
+# ========= DOCUMENT SCHEMAS =========
+
+class DocumentRequestCreate(BaseModel):
+    site_id: str
+    driver_id: str
+    requested_by_id: str
+    due_date: Optional[dt.date] = None
+
+class DocumentRequestUpdate(BaseModel):
+    pass
+
+class DocumentItemCreate(BaseModel):
+    request_id: str
+    doc_type: str
+    file_url: AnyHttpUrl
+
+class DocumentItemUpdate(BaseModel):
+    status: Optional[DocItemStatus] = None
+    reviewer_id: Optional[str] = None
+    reviewed_at: Optional[dt.datetime] = None
+
+
+# ========= ATTENDANCE SCHEMAS =========
+
+class AttendanceCreate(BaseModel):
+    driver_assignment_id: str
+    work_date: dt.date
+    check_in_at: dt.datetime
+    check_out_at: Optional[dt.datetime] = None
+
+class AttendanceUpdate(BaseModel):
+    check_out_at: Optional[dt.datetime] = None

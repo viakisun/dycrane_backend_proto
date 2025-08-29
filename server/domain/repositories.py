@@ -163,6 +163,32 @@ class CraneRepository(BaseRepository[Crane, "CraneCreate", "CraneUpdate"]):
     def get_by_owner(self, db: Session, *, owner_org_id: str) -> List[Crane]:
         return db.query(Crane).filter(Crane.owner_org_id == owner_org_id).all()
 
+from server.domain.models import SiteCraneAssignment, DriverAssignment
+
+class SiteCraneAssignmentRepository(BaseRepository[SiteCraneAssignment, "SiteCraneAssignmentCreate", "SiteCraneAssignmentUpdate"]):
+    pass
+
+class DriverAssignmentRepository(BaseRepository[DriverAssignment, "DriverAssignmentCreate", "DriverAssignmentUpdate"]):
+    pass
+
+from server.domain.models import DriverDocumentRequest, DriverDocumentItem
+
+class DocumentRequestRepository(BaseRepository[DriverDocumentRequest, "DocumentRequestCreate", "DocumentRequestUpdate"]):
+    pass
+
+class DocumentItemRepository(BaseRepository[DriverDocumentItem, "DocumentItemCreate", "DocumentItemUpdate"]):
+    pass
+
+from server.domain.models import DriverAttendance
+
+class AttendanceRepository(BaseRepository[DriverAttendance, "AttendanceCreate", "AttendanceUpdate"]):
+    pass
+
 site_repo = SiteRepository(Site)
 user_repo = UserRepository(User)
 crane_repo = CraneRepository(Crane)
+site_crane_assignment_repo = SiteCraneAssignmentRepository(SiteCraneAssignment)
+driver_assignment_repo = DriverAssignmentRepository(DriverAssignment)
+document_request_repo = DocumentRequestRepository(DriverDocumentRequest)
+document_item_repo = DocumentItemRepository(DriverDocumentItem)
+attendance_repo = AttendanceRepository(DriverAttendance)
