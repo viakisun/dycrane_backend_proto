@@ -61,6 +61,22 @@ The `scripts/dev.sh` script is the main entry point for development tasks.
     uvicorn server.main:app --reload
     ```
 
+## Project Status
+
+This project is currently in a transitional phase of refactoring from a monolithic structure with business logic in stored procedures to a modern, layered architecture with business logic in a Python-based service layer.
+
+**Completed tasks:**
+*   **Project Structure:** The codebase has been reorganized into a layered architecture (`server/api`, `server/domain`, etc.).
+*   **Configuration:** Configuration management has been updated to use `pydantic-settings`.
+*   **Core Services:** The services for Site and Crane management have been refactored to use the new repository and service pattern.
+*   **E2E Tests:** A new End-to-End test suite has been created in `tests/e2e`. The test for the main business workflow (`test_workflow.py`) currently covers the refactored services (Site creation, approval, and Crane listing).
+*   **Development Scripts:** A `scripts/dev.sh` script has been created to automate database setup and test execution.
+
+**Next Steps / To-Do:**
+*   **Complete Service Refactoring:** The remaining business logic (for assignments, documents, attendance, etc.) needs to be moved from `StoredProcedureService` to the new service layer.
+*   **Complete E2E Workflow Test:** The `test_workflow.py` needs to be completed to cover all 9 steps of the business workflow as the services are refactored.
+*   **Remove Stored Procedures:** Once all business logic is in the service layer, the stored procedures in `sql/procs.sql` can be removed.
+
 ## Project Structure
 
 The project is organized into a layered architecture:
