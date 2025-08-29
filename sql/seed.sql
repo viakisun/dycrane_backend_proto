@@ -15,15 +15,17 @@ ON CONFLICT DO NOTHING;
 
 
 -- Users
-INSERT INTO users (id, email, name, role, is_active)
+-- The password for all users is 'password'
+-- Hashed with SHA256: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+INSERT INTO users (id, email, name, role, is_active, hashed_password)
 VALUES
-(uuid_generate_v4(), 'safety1@via.local', 'Safety One', 'SAFETY_MANAGER', TRUE),
-(uuid_generate_v4(), 'safety2@via.local', 'Safety Two', 'SAFETY_MANAGER', TRUE),
-(uuid_generate_v4(), 'mfr@via.local', 'Mfr Admin', 'MANUFACTURER', TRUE),
-(uuid_generate_v4(), 'owner@via.local', 'Owner Boss', 'OWNER', TRUE),
-(uuid_generate_v4(), 'driver1@via.local', 'Driver A', 'DRIVER', TRUE),
-(uuid_generate_v4(), 'driver2@via.local', 'Driver B', 'DRIVER', TRUE),
-(uuid_generate_v4(), 'driver3@via.local', 'Driver C', 'DRIVER', TRUE)
+('user-safety-manager-01', 'safety1@via.local', 'Safety One', 'SAFETY_MANAGER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-safety-manager-02', 'safety2@via.local', 'Safety Two', 'SAFETY_MANAGER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-manufacturer-01', 'mfr@via.local', 'Mfr Admin', 'MANUFACTURER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-owner-01', 'owner@via.local', 'Owner Boss', 'OWNER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-driver-01', 'driver1@via.local', 'Driver A', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-driver-02', 'driver2@via.local', 'Driver B', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-driver-03', 'driver3@via.local', 'Driver C', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8')
 ON CONFLICT (email) DO NOTHING;
 
 
