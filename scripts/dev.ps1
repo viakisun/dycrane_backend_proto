@@ -1,20 +1,14 @@
 # =============================================================================
-# DY Crane Safety Management - Development & Test Orchestrator
+# DY Crane Safety Management - Development & Test Orchestrator (PowerShell)
 #
 # USAGE:
-#   ./scripts/dev.ps1 db            - Initializes the database (tables, views, seeds).
-#   ./scripts/dev.ps1 test          - Runs the full E2E test suite.
-#   ./scripts/dev.ps1 test/verbose  - Runs E2E tests with detailed logging.
-#
-# REQUIREMENTS:
-#   - PowerShell 7+
-#   - Python 3.8+
-#   - Docker (for PostgreSQL) or a running PostgreSQL instance.
-#   - `psql` client (recommended) or `psycopg2` python package.
+#   ./scripts/dev.ps1 -Command db
+#   ./scripts/dev.ps1 -Command test
+#   ./scripts/dev.ps1 -Command test/verbose
 # =============================================================================
 
 param (
-    [Parameter(Mandatory = $true, Position = 0)]
+    [Parameter(Mandatory = $true)]
     [ValidateSet("db", "test", "test/verbose")]
     [string]$Command
 )
@@ -28,7 +22,7 @@ $DotEnvFile = Join-Path $ProjectRoot ".env"
 # Load .env file if it exists
 if (Test-Path $DotEnvFile) {
     Get-Content $DotEnvFile | ForEach-Object {
-        if ($_ -match "^\s*#") { return } # Skip comments
+        if ($_ -match "^\s*#") { return }
         $name, $value = $_.Split('=', 2)
         if ($name -and $value) {
             [System.Environment]::SetEnvironmentVariable($name.Trim(), $value.Trim(), "Process")
@@ -36,182 +30,113 @@ if (Test-Path $DotEnvFile) {
     }
 }
 
-# API and Database settings from environment variables
-$API_HOST = $env:API_HOST_OVERRIDE ?? $env:API_HOST ?? "127.0.0.1"
-$API_PORT = $env:API_PORT_OVERRIDE ?? $env:API_PORT ?? 8000
+$API_HOST = $env:API_HOST ?? "127.0.0.1"
+$API_PORT = $env:API_PORT ?? 8000
 $BASE_URL = $env:E2E_BASE_URL ?? "http://$($API_HOST):$($API_PORT)"
-$HEALTH_URL = "$($BASE_URL)/health"
+$HEALTH_URL = "$($BASE_URL)/api/health"
 
 # --- Helper Functions ---
-
 function Write-Step($Message) {
     Write-Host "`n" + ("=" * 60)
-    Write-Host "[STEP] $Message"
+    Write-Host "[STEP] $Message" -ForegroundColor Yellow
     Write-Host ("=" * 60)
 }
-
 function Write-SubStep($Message) {
     Write-Host "[INFO] $Message" -ForegroundColor Cyan
 }
-
 function Write-Success($Message) {
     Write-Host "[OK] $Message" -ForegroundColor Green
 }
-
 function Write-Failure($Message, $ExitCode = 1) {
     Write-Host "[FAIL] $Message" -ForegroundColor Red
-    if ($ExitCode -ne 0) {
-        exit $ExitCode
-    }
-}
-
-function Write-Warning($Message) {
-    Write-Host "[WARN] $Message" -ForegroundColor Yellow
+    if ($ExitCode -ne 0) { exit $ExitCode }
 }
 
 # --- Prerequisite Checks ---
-
 function Test-Psql {
-    try {
-        $null = psql --version 2>&1
-        if ($LASTEXITCODE -eq 0) { return $true }
-    }
-    catch { }
-    return $false
+    return (Get-Command psql -ErrorAction SilentlyContinue) -ne $null
 }
 
 function Activate-Venv {
     if (-not (Test-Path $VenvPath)) {
         Write-SubStep "Virtual environment not found. Creating..."
         python -m venv $VenvPath
-        if ($LASTEXITCODE -ne 0) { Write-Failure "Failed to create virtual environment." }
+        if ($LASTEXITCODE -ne 0) { Write-Failure "Failed to create venv." }
     }
-
-    # Activate venv
     . (Join-Path $VenvPath "Scripts/Activate.ps1")
-
-    Write-SubStep "Installing/updating dependencies from $RequirementsFile..."
-    pip install -r $RequirementsFile --upgrade
+    Write-SubStep "Installing dependencies..."
+    pip install -r $RequirementsFile
     if ($LASTEXITCODE -ne 0) { Write-Failure "Failed to install dependencies." }
     Write-Success "Virtual environment is ready."
 }
 
 # --- Database Operations ---
-
 function Initialize-Database {
     Write-Step "Initializing Database"
-
     if (Test-Psql) {
         Write-SubStep "Using psql for database operations."
-        try {
-            # Use postgres db to create the main database if it doesn't exist
-            psql -h $env:PGHOST -U $env:PGUSER -d "postgres" -c "CREATE DATABASE $($env:PGDATABASE)" 2>$null
+        $env:PGPASSWORD = $env:PGPASSWORD
+        # Attempt to create DB, suppress errors if it exists
+        psql -h $env:PGHOST -U $env:PGUSER -d "postgres" -c "CREATE DATABASE $($env:PGDATABASE)" 2>$null
 
-            psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/init_db.sql"
-            psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/init_view.sql"
-            psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/truncate.sql"
-            psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/seed.sql"
-
-            Write-Success "Database initialized successfully via psql."
-        }
-        catch {
-            Write-Failure "Database initialization failed with psql. Error: $($_.Exception.Message)"
-        }
-    }
-    else {
-        Write-Warning "psql command not found. Falling back to Python DB runner."
-        Write-SubStep "Ensure psycopg2-binary is installed."
+        psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/init_db.sql"
+        psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/init_view.sql"
+        psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/truncate.sql"
+        psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/seed.sql"
+    } else {
+        Write-SubStep "psql not found, falling back to Python runner."
         python "$ProjectRoot/scripts/db_runner.py" "full"
-        if ($LASTEXITCODE -ne 0) { Write-Failure "Database initialization failed with Python runner." }
-        Write-Success "Database initialized successfully via Python runner."
     }
+
+    if ($LASTEXITCODE -ne 0) { Write-Failure "Database initialization failed." }
+    Write-Success "Database initialized."
 }
 
 # --- Test Execution ---
-
 function Run-Tests {
     param($IsVerbose)
-
     Write-Step "Running E2E Tests"
     $ServerProcess = $null
-
     try {
-        # 1. Start API server in the background
         Write-SubStep "Starting API server in background..."
         $ServerProcess = Start-Process python -ArgumentList "-m uvicorn", "server.main:app", "--host", $API_HOST, "--port", $API_PORT -PassThru -WindowStyle Hidden
-        Write-SubStep "Server started with PID: $($ServerProcess.Id)"
 
-        # 2. Health Check Polling
-        Write-SubStep "Waiting for server to be healthy at $HEALTH_URL..."
-        $Timeout = 60 # seconds
-        $Interval = 0.5 # seconds
+        Write-SubStep "Waiting for server... (PID: $($ServerProcess.Id))"
+        $Timeout = 60
+        $Interval = 0.5
         $Timer = [System.Diagnostics.Stopwatch]::StartNew()
-
         while ($Timer.Elapsed.TotalSeconds -lt $Timeout) {
             try {
-                $response = Invoke-WebRequest -Uri $HEALTH_URL -UseBasicParsing
-                if ($response.StatusCode -eq 200) {
-                    Write-Success "Server is healthy."
-                    break
-                }
-            }
-            catch {
-                Start-Sleep -Seconds $Interval
-            }
+                $response = Invoke-WebRequest -Uri $HEALTH_URL -UseBasicParsing -TimeoutSec 1
+                if ($response.StatusCode -eq 200) { Write-Success "Server is healthy."; break }
+            } catch { Start-Sleep -Seconds $Interval }
         }
+        if ($Timer.Elapsed.TotalSeconds -ge $Timeout) { Write-Failure "Server health check timed out." }
 
-        if ($Timer.Elapsed.TotalSeconds -ge $Timeout) {
-            Write-Failure "Server did not become healthy within $Timeout seconds."
-        }
-
-        # 3. Run Pytest
-        $pytest_args = @("tests/e2e", "-q")
-        if ($IsVerbose) {
-            $pytest_args = @("tests/e2e", "-vv", "-s", "--log-cli-level=INFO")
-        }
-
-        Write-SubStep "Executing pytest with arguments: $($pytest_args -join ' ')"
+        $pytest_args = if ($IsVerbose) { @("tests/e2e", "-vv", "-s") } else { @("tests/e2e", "-q") }
+        Write-SubStep "Executing: pytest $($pytest_args -join ' ')"
         pytest $pytest_args
-        if ($LASTEXITCODE -ne 0) {
-            Write-Failure "Pytest reported test failures."
-        } else {
-            Write-Success "All tests passed!"
-        }
+        if ($LASTEXITCODE -ne 0) { Write-Failure "Tests failed." } else { Write-Success "All tests passed!" }
     }
     finally {
-        # 4. Stop Server
         if ($ServerProcess) {
-            Write-SubStep "Stopping API server (PID: $($ServerProcess.Id))..."
+            Write-SubStep "Stopping server (PID: $($ServerProcess.Id))"
             Stop-Process -Id $ServerProcess.Id -Force
-            Write-Success "Server stopped."
         }
     }
 }
 
 # --- Main Logic ---
-
-# Check for required environment variables
-if (-not $env:PGHOST -or -not $env:PGUSER -or -not $env:PGPASSWORD -or -not $env:PGDATABASE) {
-    Write-Failure "Database environment variables (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) are not set. Create a .env file or set them manually."
+if (-not ($env:PGHOST -and $env:PGUSER -and $env:PGPASSWORD -and $env:PGDATABASE)) {
+    Write-Failure "Database env vars (PGHOST, PGUSER, PGPASSWORD, PGDATABASE) not set."
 }
 
-# Activate virtual environment and install dependencies
 Activate-Venv
 
-# Execute command
 switch ($Command) {
-    "db" {
-        Initialize-Database
-    }
-    "test" {
-        Initialize-Database
-        Run-Tests -IsVerbose $false
-    }
-    "test/verbose" {
-        Initialize-Database
-        Run-Tests -IsVerbose $true
-    }
+    "db" { Initialize-Database }
+    "test" { Initialize-Database; Run-Tests -IsVerbose $false }
+    "test/verbose" { Initialize-Database; Run-Tests -IsVerbose $true }
 }
 
-Write-Host "`n"
 Write-Success "Command '$Command' completed."
