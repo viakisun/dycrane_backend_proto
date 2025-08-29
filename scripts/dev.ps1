@@ -30,9 +30,9 @@ if (Test-Path $DotEnvFile) {
     }
 }
 
-$API_HOST = $env:API_HOST ?? "127.0.0.1"
-$API_PORT = $env:API_PORT ?? 8000
-$BASE_URL = $env:E2E_BASE_URL ?? "http://$($API_HOST):$($API_PORT)"
+if ($env:API_HOST) { $API_HOST = $env:API_HOST } else { $API_HOST = "127.0.0.1" }
+if ($env:API_PORT) { $API_PORT = $env:API_PORT } else { $API_PORT = 8000 }
+if ($env:E2E_BASE_URL) { $BASE_URL = $env:E2E_BASE_URL } else { $BASE_URL = "http://$($API_HOST):$($API_PORT)" }
 $HEALTH_URL = "$($BASE_URL)/api/health"
 
 # --- Helper Functions ---
