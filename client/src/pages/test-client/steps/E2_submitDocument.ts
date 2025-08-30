@@ -12,7 +12,17 @@ type SubmitDocumentOutput = {
 export async function submitDocument(
   input: SubmitDocumentInput
 ): Promise<SubmitDocumentOutput> {
-  const { docRequestId } = input;
+  const { actions, docRequestId } = input;
+
+  actions.addLog({
+    actor: 'DEBUG',
+    stepCode: 'E2',
+    summary: `Submitting document for request ID: ${docRequestId}`,
+  });
+
+  if (!docRequestId) {
+    throw new Error('docRequestId is missing for submitDocument step');
+  }
 
   const docSubmitData = {
     request_id: docRequestId,
