@@ -43,6 +43,10 @@ def print_info(message):
 
 def get_db_connection(dbname=DB_NAME):
     """Establishes a connection to the PostgreSQL database."""
+    if os.getenv("USE_SQLITE_FOR_E2E"):
+        print_info("USE_SQLITE_FOR_E2E is set, skipping PostgreSQL connection.")
+        return None
+
     try:
         conn = psycopg2.connect(
             dbname=dbname,

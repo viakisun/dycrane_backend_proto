@@ -28,10 +28,12 @@ async function request<T>(
     'X-Org-ID': user.orgId || '',
   };
 
+  // When running in the browser, we want to use a relative path
+  // so that the Vite dev server's proxy can intercept the requests.
   const requestConfig: AxiosRequestConfig = {
     ...config,
     headers,
-    baseURL: `${context.host || 'http://localhost:8000'}`
+    baseURL: '/api'
   };
 
   actions.addLog({
