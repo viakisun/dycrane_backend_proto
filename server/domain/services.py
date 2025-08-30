@@ -1,6 +1,6 @@
 import logging
 import datetime as dt
-from typing import List
+from typing import List, Optional
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
