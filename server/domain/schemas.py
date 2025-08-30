@@ -405,7 +405,7 @@ class DocumentRequestUpdate(BaseModel):
 class DocumentItemCreate(BaseModel):
     request_id: str
     doc_type: str
-    file_url: AnyHttpUrl
+    file_url: str  # Must be a plain string for the DB layer
 
 
 class DocumentItemUpdate(BaseModel):
