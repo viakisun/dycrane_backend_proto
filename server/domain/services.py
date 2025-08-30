@@ -18,10 +18,12 @@ from server.domain.models import (
     SiteCraneAssignment,
     User,
     UserOrg,
+    CraneModel,
 )
 from server.domain.repositories import (
     attendance_repo,
     crane_repo,
+    crane_model_repo,
     document_item_repo,
     document_request_repo,
     driver_assignment_repo,
@@ -352,6 +354,21 @@ class OwnerService:
         return query.order_by(Request.requested_at.desc()).all()
 
 
+class CraneModelService:
+    def get_models(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[CraneModel]:
+        """
+        Retrieves a list of crane models.
+        """
+        logger.info("Fetching list of crane models")
+        return crane_model_repo.get_multi(db, skip=skip, limit=limit)
+
+    def get_model(self, db: Session, model_id: str) -> Optional[CraneModel]:
+        """
+        Retrieves a single crane model by its ID.
+        """
+        logger.info(f"Fetching crane model with id: {model_id}")
+        return crane_model_repo.get(db, id=model_id)
+
 # Instantiate services
 user_service = UserService()
 site_service = SiteService(user_service=user_service)
@@ -361,3 +378,4 @@ document_service = DocumentService(user_service=user_service)
 attendance_service = AttendanceService()
 request_service = RequestService()
 owner_service = OwnerService()
+crane_model_service = CraneModelService()
