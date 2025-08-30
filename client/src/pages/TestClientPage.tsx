@@ -1,47 +1,44 @@
-import React, { useEffect } from 'react';
-import StepPanel from './test-client/ui/StepPanel';
-import LogConsole from './test-client/ui/LogConsole';
-import WorkflowRail from './test-client/ui/WorkflowRail';
-import { useWorkflowStore } from './test-client/state/workflowStore';
+import React from 'react';
+import { useWorkflowStore } from '../state/workflowStore';
+import { WORKFLOW_STEPS } from '../workflow-def';
+import { WorkflowStepCard } from './test-client/ui/WorkflowStepCard';
 
 const TestClientPage: React.FC = () => {
-  const { initialize, reset } = useWorkflowStore(state => state.actions);
-
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
-
-  const handleReset = () => {
-    reset();
-  };
+  const { isRunning, actions } = useWorkflowStore();
+  const { runAllSteps, fullReset } = actions;
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8">
+    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
       <header className="mb-6 flex justify-between items-center">
         <div>
-            <h1 className="text-2xl font-bold text-gray-800">Developer Guide</h1>
-            <p className="text-sm text-gray-500">Interactive E2E Workflow Test Client</p>
+          <h1 className="text-2xl font-bold text-gray-800">Developer Guide: Workflow</h1>
+          <p className="text-sm text-gray-500">
+            An interactive step-by-step guide to the business workflow.
+          </p>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
             <button
-                onClick={handleReset}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition-colors duration-150"
+                onClick={fullReset}
+                disabled={isRunning}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition-colors duration-150 disabled:opacity-50"
             >
-                Reset Workflow Data
+                Reset Data
+            </button>
+            <button
+                onClick={runAllSteps}
+                disabled={isRunning}
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors duration-150 disabled:opacity-50"
+            >
+                {isRunning ? 'Running...' : 'Run All Steps'}
             </button>
         </div>
       </header>
-      <main className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-3">
-          <WorkflowRail />
-        </div>
-        <div className="lg:col-span-5">
-          <StepPanel />
-        </div>
-        <div className="lg:col-span-4">
-          <LogConsole />
-        </div>
-      </main>
+
+      <div className="space-y-6">
+        {WORKFLOW_STEPS.map((step) => (
+          <WorkflowStepCard key={step.code} step={step} />
+        ))}
+      </div>
     </div>
   );
 };
