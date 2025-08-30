@@ -45,7 +45,12 @@ const OwnersListPage: React.FC = () => {
       <h1 className="text-3xl font-bold text-cyan-glow mb-6">Owner Organizations</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {owners.map((owner) => (
-          <Link to={`/owners/${owner.id}/cranes`} key={owner.id} className="block p-1 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 hover:scale-105 transition-transform duration-300">
+          <Link
+            to={`/owners/${owner.id}/cranes`}
+            key={owner.id}
+            state={{ ownerName: owner.name }}
+            className="block p-1 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 hover:scale-105 transition-transform duration-300"
+          >
             <div className="bg-gray-800 p-6 rounded-md h-full">
               <h2 className="text-xl font-bold text-white">{owner.name}</h2>
               <div className="mt-4 flex justify-between items-center">

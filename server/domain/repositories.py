@@ -218,11 +218,29 @@ from sqlalchemy.orm import joinedload
 
 class CraneRepository(BaseRepository[Crane, CraneCreate, CraneUpdate]):
     def get_by_owner(
-        self, db: Session, *, owner_org_id: str, status: Optional[CraneStatus] = None
+        self,
+        db: Session,
+        *,
+        owner_org_id: str,
+        status: Optional[CraneStatus] = None,
+        model_name: Optional[str] = None,
+        min_capacity: Optional[int] = None,
     ) -> List[Crane]:
-        query = db.query(Crane).options(joinedload(Crane.model)).filter(Crane.owner_org_id == owner_org_id)
+        query = (
+            db.query(Crane)
+            .options(joinedload(Crane.model))
+            .filter(Crane.owner_org_id == owner_org_id)
+        )
         if status:
             query = query.filter(Crane.status == status)
+        if model_name:
+            query = query.join(CraneModel).filter(
+                CraneModel.model_name.ilike(f"%{model_name}%")
+            )
+        if min_capacity:
+            query = query.join(CraneModel).filter(
+                CraneModel.max_lifting_capacity_ton_m >= min_capacity
+            )
         return cast(List[Crane], query.all())
 
 

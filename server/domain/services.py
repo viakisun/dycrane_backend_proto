@@ -166,16 +166,25 @@ class SiteService:
 
 class CraneService:
     def list_owner_cranes(
-        self, db: Session, *, owner_org_id: str, status: Optional[CraneStatus] = None
+        self,
+        db: Session,
+        *,
+        owner_org_id: str,
+        status: Optional[CraneStatus] = None,
+        model_name: Optional[str] = None,
+        min_capacity: Optional[int] = None,
     ) -> List[Crane]:
         """
-        List all cranes owned by a specific organization, with optional status
-        filtering.
+        List all cranes owned by a specific organization, with optional filters.
         """
-        logger.info(f"Listing cranes for org: {owner_org_id} with status: {status}")
-        # This is a simplified example. In a real scenario, you would also
-        # validate the organization exists and is of the correct type.
-        cranes = crane_repo.get_by_owner(db, owner_org_id=owner_org_id, status=status)
+        logger.info(f"Listing cranes for org: {owner_org_id} with filters")
+        cranes = crane_repo.get_by_owner(
+            db,
+            owner_org_id=owner_org_id,
+            status=status,
+            model_name=model_name,
+            min_capacity=min_capacity,
+        )
         logger.info(f"Found {len(cranes)} cranes for organization: {owner_org_id}")
         return cranes
 
