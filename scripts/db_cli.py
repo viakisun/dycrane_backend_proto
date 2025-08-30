@@ -128,24 +128,28 @@ def run_procedural_seed():
             db.rollback()
             sys.exit(1)
 
-def run_db_reset():
-    """Resets the database by truncating tables and reseeding."""
-    conn = get_db_connection()
-    if conn:
-        execute_sql_file(conn, SQL_FILES["reset"])
-        conn.close()
+def run_full_reset():
+    """Resets the entire database and reseeds."""
+    print_info("Running full database reset...")
+    db_manager.reset_full_database()
     run_procedural_seed()
+    print_success("Full database reset and seed complete.")
+
+def run_transactional_reset():
+    """Resets only transactional data."""
+    print_info("Running transactional data reset...")
+    db_manager.reset_transactional_data()
+    print_success("Transactional data reset complete.")
 
 def run_full_setup():
-    """Runs the full database setup: init, views, truncate, seed."""
+    """Runs the full database setup: init, views, full reset, seed."""
     print_info("Starting full database setup...")
     run_db_init()
     conn = get_db_connection()
     if conn:
         execute_sql_file(conn, SQL_FILES["views"])
-        execute_sql_file(conn, SQL_FILES["reset"])
         conn.close()
-    run_procedural_seed()
+    run_full_reset()
     print_success("Full database setup complete.")
 
 if __name__ == "__main__":
@@ -156,13 +160,15 @@ if __name__ == "__main__":
             run_db_init()
         elif command == "seed":
             run_procedural_seed()
-        elif command == "reset":
-            run_db_reset()
+        elif command == "reset-full":
+            run_full_reset()
+        elif command == "reset-transactional":
+            run_transactional_reset()
         elif command == "full":
             run_full_setup()
         else:
             print_error(f"Unknown command: {command}")
-            print_info("Available commands: init, seed, reset, full")
+            print_info("Available commands: init, seed, reset-full, reset-transactional, full")
     else:
         print_info("No command provided. Running full setup by default.")
         run_full_setup()

@@ -26,7 +26,7 @@ const TestClientPage: React.FC = () => {
                 onClick={handleReset}
                 className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors duration-150"
             >
-                Reset Server State
+                Reset Workflow Data
             </button>
             <p className="text-xs text-gray-500">Commit: abc1234 | Version: 0.1.0</p>
         </div>

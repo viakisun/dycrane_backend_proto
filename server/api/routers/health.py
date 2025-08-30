@@ -34,15 +34,29 @@ def health_check(db: Session = Depends(get_db)):
     return response
 
 
-@router.post("/reset", status_code=204)
-def reset_database_for_testing():
+@router.post("/reset-transactional", status_code=204)
+def reset_transactional_data():
     """
-    Reset the database to a clean state. FOR DEVELOPMENT/TESTING ONLY.
+    Reset only the transactional data in the database.
+    Preserves master data like users, cranes, etc.
     """
-    logger.warning("Received request to reset the database")
+    logger.info("Received request to reset transactional data")
     try:
-        db_manager.reset_database()
-        return {"status": "Database reset successfully"}
+        db_manager.reset_transactional_data()
     except Exception as e:
-        logger.error(f"An error occurred during database reset: {e}")
+        logger.error(f"An error occurred during transactional data reset: {e}")
+        raise
+
+
+@router.post("/reset-full", status_code=204)
+def reset_full_database_for_testing():
+    """
+    Reset the entire database. FOR DEVELOPMENT/TESTING ONLY.
+    WARNING: This is a destructive operation.
+    """
+    logger.warning("Received request for a full database reset")
+    try:
+        db_manager.reset_full_database()
+    except Exception as e:
+        logger.error(f"An error occurred during full database reset: {e}")
         raise
