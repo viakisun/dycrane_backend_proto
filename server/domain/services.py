@@ -275,11 +275,17 @@ class DocumentService:
     def submit_document_item(
         self, db: Session, *, item_in: DocItemSubmitIn
     ) -> DriverDocumentItem:
-        # A real implementation would validate the request exists and that the
-        # file_url is a valid, accessible URL.
-        # The actual fix is in the DocumentItemCreate schema, not here.
-        item_data = DocumentItemCreate(**item_in.model_dump())
-        return document_item_repo.create(db, obj_in=item_data)
+        # The internal DocumentItemCreate model expects a plain string for file_url,
+        # while the input schema DocItemSubmitIn uses AnyHttpUrl for validation.
+        # We must explicitly construct the creation model, converting the URL type
+        # to a string to prevent a Pydantic ValidationError and ensure
+        # compatibility with the database driver.
+        item_data_for_repo = DocumentItemCreate(
+            request_id=item_in.request_id,
+            doc_type=item_in.doc_type,
+            file_url=str(item_in.file_url),
+        )
+        return document_item_repo.create(db, obj_in=item_data_for_repo)
 
     def review_document_item(
         self, db: Session, *, review_in: DocItemReviewIn
