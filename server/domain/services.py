@@ -205,6 +205,25 @@ class AssignmentService:
         # In a real implementation, we would also validate the site and
         # crane exist and are available.
 
+        # Add validation for overlapping assignments
+        overlapping_assignment = (
+            db.query(SiteCraneAssignment)
+            .filter(
+                SiteCraneAssignment.crane_id == assignment_in.crane_id,
+                # The new assignment's start is before or at the same time the existing one ends
+                assignment_in.start_date <= (SiteCraneAssignment.end_date or dt.date.max),
+                # The new assignment's end is after or at the same time the existing one starts
+                (assignment_in.end_date or dt.date.max) >= SiteCraneAssignment.start_date,
+            )
+            .first()
+        )
+
+        if overlapping_assignment:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Crane {assignment_in.crane_id} is already assigned during the requested period.",
+            )
+
         assignment_data = SiteCraneAssignmentCreate(
             site_id=assignment_in.site_id,
             crane_id=assignment_in.crane_id,
