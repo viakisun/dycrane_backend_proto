@@ -18,7 +18,7 @@ const OwnersListPage: React.FC = () => {
     const fetchOwners = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get('/api/owners/with-stats');
+        const response = await apiClient.get('/owners/with-stats');
         setOwners(response.data);
         setError(null);
       } catch (err) {
