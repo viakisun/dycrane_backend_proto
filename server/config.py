@@ -1,6 +1,6 @@
 import logging
 from functools import lru_cache
-from typing import Set
+from typing import Set, cast
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     """
     Application settings loaded from environment variables and .env file.
     """
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
@@ -52,7 +53,7 @@ class Settings(BaseSettings):
 
     def get_log_level(self) -> int:
         """Convert string log level to logging constant."""
-        return logging.getLevelName(self.LOG_LEVEL.upper())
+        return cast(int, logging.getLevelName(self.LOG_LEVEL.upper()))
 
     def is_development(self) -> bool:
         """Check if running in development mode."""

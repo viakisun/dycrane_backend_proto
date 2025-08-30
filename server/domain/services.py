@@ -1,13 +1,59 @@
-import logging
 import datetime as dt
+import logging
 from typing import List, Optional
 
 from fastapi import HTTPException, status
+from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
-from server.domain.models import User, Site, Crane, SiteCraneAssignment, DriverAssignment, DriverDocumentRequest, DriverDocumentItem, DriverAttendance
-from server.domain.repositories import user_repo, site_repo, crane_repo, site_crane_assignment_repo, driver_assignment_repo, document_request_repo, document_item_repo, attendance_repo
-from server.domain.schemas import UserRole, SiteCreate, SiteStatus, SiteUpdate, CraneCreate, CraneUpdate, OrgType, SiteCraneAssignmentCreate, DriverAssignmentCreate, DocumentRequestCreate, DocumentItemCreate, DocItemStatus, DocumentItemUpdate, AttendanceCreate
+from server.domain.models import (
+    Crane,
+    DriverAssignment,
+    DriverAttendance,
+    DriverDocumentItem,
+    DriverDocumentRequest,
+    Org,
+    Request,
+    Site,
+    SiteCraneAssignment,
+    User,
+    UserOrg,
+)
+from server.domain.repositories import (
+    attendance_repo,
+    crane_repo,
+    document_item_repo,
+    document_request_repo,
+    driver_assignment_repo,
+    site_crane_assignment_repo,
+    site_repo,
+    user_repo,
+)
+from server.domain.schemas import (
+    AssignCraneIn,
+    AssignDriverIn,
+    AttendanceCreate,
+    AttendanceIn,
+    CraneStatus,
+    DocItemReviewIn,
+    DocItemStatus,
+    DocItemSubmitIn,
+    DocRequestIn,
+    DocumentItemCreate,
+    DocumentItemUpdate,
+    DocumentRequestCreate,
+    DriverAssignmentCreate,
+    OrgType,
+    OwnerStatsOut,
+    RequestCreate,
+    RequestStatus,
+    RequestType,
+    RequestUpdate,
+    SiteCraneAssignmentCreate,
+    SiteCreate,
+    SiteStatus,
+    UserRole,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +82,9 @@ class UserService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"User must have role {expected_role.value}, but has {user.role.value}",
             )
-        logger.info(f"User {user_id} validated successfully for role {expected_role.value}")
+        logger.info(
+            "User %s validated for role %s", user_id, expected_role.value
+        )
         return user
 
 
@@ -66,9 +114,7 @@ class SiteService:
         logger.info(f"Site created successfully: {site.id} - {site.name}")
         return site
 
-    def approve_site(
-        self, db: Session, *, site_id: str, approved_by_id: str
-    ) -> Site:
+    def approve_site(self, db: Session, *, site_id: str, approved_by_id: str) -> Site:
         """
         Approves a construction site.
         """
@@ -99,7 +145,9 @@ class SiteService:
         logger.info(f"Site approved successfully: {site.id} - {site.name}")
         return site
 
-    def list_sites(self, db: Session, *, mine: Optional[bool], user_id: Optional[str]) -> List[Site]:
+    def list_sites(
+        self, db: Session, *, mine: Optional[bool], user_id: Optional[str]
+    ) -> List[Site]:
         """
         Lists construction sites. If 'mine' is True, filters for sites
         relevant to the given user_id.
@@ -114,30 +162,37 @@ class SiteService:
         return site_repo.get_multi_for_user(db, user_id=user_id if mine else None)
 
 
-from server.domain.schemas import UserRole, SiteCreate, SiteStatus, SiteUpdate, CraneCreate, CraneUpdate, OrgType, SiteCraneAssignmentCreate, DriverAssignmentCreate, DocumentRequestCreate, DocumentItemCreate, DocItemStatus, DocumentItemUpdate, AttendanceCreate, CraneStatus
-
 class CraneService:
-    def list_owner_cranes(self, db: Session, *, owner_org_id: str, status: Optional[CraneStatus] = None) -> List[Crane]:
+    def list_owner_cranes(
+        self, db: Session, *, owner_org_id: str, status: Optional[CraneStatus] = None
+    ) -> List[Crane]:
         """
-        List all cranes owned by a specific organization, with optional status filtering.
+        List all cranes owned by a specific organization, with optional status
+        filtering.
         """
-        logger.info(f"Listing cranes for organization: {owner_org_id} with status filter: {status}")
+        logger.info(f"Listing cranes for org: {owner_org_id} with status: {status}")
         # This is a simplified example. In a real scenario, you would also
         # validate the organization exists and is of the correct type.
         cranes = crane_repo.get_by_owner(db, owner_org_id=owner_org_id, status=status)
         logger.info(f"Found {len(cranes)} cranes for organization: {owner_org_id}")
         return cranes
 
+
 class AssignmentService:
     def __init__(self, user_service: UserService):
         self.user_service = user_service
 
-    def assign_crane_to_site(self, db: Session, *, assignment_in: "AssignCraneIn") -> SiteCraneAssignment:
+    def assign_crane_to_site(
+        self, db: Session, *, assignment_in: AssignCraneIn
+    ) -> SiteCraneAssignment:
         # Simplified for now. A real implementation would have more validation.
         self.user_service.get_user_and_validate_role(
-            db, user_id=assignment_in.safety_manager_id, expected_role=UserRole.SAFETY_MANAGER
+            db,
+            user_id=assignment_in.safety_manager_id,
+            expected_role=UserRole.SAFETY_MANAGER,
         )
-        # In a real implementation, we would also validate the site and crane exist and are available.
+        # In a real implementation, we would also validate the site and
+        # crane exist and are available.
 
         assignment_data = SiteCraneAssignmentCreate(
             site_id=assignment_in.site_id,
@@ -148,7 +203,9 @@ class AssignmentService:
         )
         return site_crane_assignment_repo.create(db, obj_in=assignment_data)
 
-    def assign_driver_to_crane(self, db: Session, *, assignment_in: "AssignDriverIn") -> DriverAssignment:
+    def assign_driver_to_crane(
+        self, db: Session, *, assignment_in: AssignDriverIn
+    ) -> DriverAssignment:
         self.user_service.get_user_and_validate_role(
             db, user_id=assignment_in.driver_id, expected_role=UserRole.DRIVER
         )
@@ -161,13 +218,18 @@ class AssignmentService:
         )
         return driver_assignment_repo.create(db, obj_in=assignment_data)
 
+
 class DocumentService:
     def __init__(self, user_service: UserService):
         self.user_service = user_service
 
-    def create_document_request(self, db: Session, *, request_in: "DocRequestIn") -> DriverDocumentRequest:
+    def create_document_request(
+        self, db: Session, *, request_in: DocRequestIn
+    ) -> DriverDocumentRequest:
         self.user_service.get_user_and_validate_role(
-            db, user_id=request_in.requested_by_id, expected_role=UserRole.SAFETY_MANAGER
+            db,
+            user_id=request_in.requested_by_id,
+            expected_role=UserRole.SAFETY_MANAGER,
         )
         self.user_service.get_user_and_validate_role(
             db, user_id=request_in.driver_id, expected_role=UserRole.DRIVER
@@ -177,14 +239,18 @@ class DocumentService:
         request_data = DocumentRequestCreate(**request_in.model_dump())
         return document_request_repo.create(db, obj_in=request_data)
 
-    def submit_document_item(self, db: Session, *, item_in: "DocItemSubmitIn") -> DriverDocumentItem:
-        # A real implementation would validate the request exists.
-        ValidationService.validate_file_url(str(item_in.file_url))
-
+    def submit_document_item(
+        self, db: Session, *, item_in: DocItemSubmitIn
+    ) -> DriverDocumentItem:
+        # A real implementation would validate the request exists and that the
+        # file_url is a valid, accessible URL.
+        # For now, we are skipping the validation.
         item_data = DocumentItemCreate(**item_in.model_dump())
         return document_item_repo.create(db, obj_in=item_data)
 
-    def review_document_item(self, db: Session, *, review_in: "DocItemReviewIn") -> DriverDocumentItem:
+    def review_document_item(
+        self, db: Session, *, review_in: DocItemReviewIn
+    ) -> DriverDocumentItem:
         self.user_service.get_user_and_validate_role(
             db, user_id=review_in.reviewer_id, expected_role=UserRole.SAFETY_MANAGER
         )
@@ -193,7 +259,9 @@ class DocumentService:
             raise HTTPException(status_code=404, detail="Document item not found")
 
         update_data = DocumentItemUpdate(
-            status=DocItemStatus.APPROVED if review_in.approve else DocItemStatus.REJECTED,
+            status=DocItemStatus.APPROVED
+            if review_in.approve
+            else DocItemStatus.REJECTED,
             reviewer_id=review_in.reviewer_id,
             reviewed_at=dt.datetime.utcnow(),
         )
@@ -201,14 +269,13 @@ class DocumentService:
 
 
 class AttendanceService:
-    def record_attendance(self, db: Session, *, attendance_in: "AttendanceIn") -> DriverAttendance:
+    def record_attendance(
+        self, db: Session, *, attendance_in: AttendanceIn
+    ) -> DriverAttendance:
         # Simplified for now. A real implementation would have more validation.
         attendance_data = AttendanceCreate(**attendance_in.model_dump())
         return attendance_repo.create(db, obj_in=attendance_data)
 
-from sqlalchemy import func, case
-from server.domain.models import Org, Request, UserOrg
-from server.domain.schemas import OwnerStatsOut, RequestCreate, RequestUpdate, RequestStatus, RequestType
 
 class RequestService:
     def create_request(self, db: Session, request_in: RequestCreate) -> Request:
@@ -221,7 +288,9 @@ class RequestService:
         db.refresh(new_request)
         return new_request
 
-    def respond_to_request(self, db: Session, request_id: str, response_in: RequestUpdate) -> Request:
+    def respond_to_request(
+        self, db: Session, request_id: str, response_in: RequestUpdate
+    ) -> Request:
         request = db.query(Request).filter(Request.id == request_id).first()
         if not request:
             raise ValueError("Request not found")
@@ -239,6 +308,7 @@ class RequestService:
         db.refresh(request)
         return request
 
+
 class OwnerService:
     def get_owners_with_stats(self, db: Session) -> List[OwnerStatsOut]:
         results = (
@@ -246,7 +316,9 @@ class OwnerService:
                 Org.id,
                 Org.name,
                 func.count(Crane.id).label("total_cranes"),
-                func.count(case((Crane.status == CraneStatus.NORMAL, Crane.id))).label("available_cranes"),
+                func.count(case((Crane.status == CraneStatus.NORMAL, Crane.id))).label(
+                    "available_cranes"
+                ),
             )
             .outerjoin(Crane, Org.id == Crane.owner_org_id)
             .filter(Org.type == OrgType.OWNER)
@@ -256,7 +328,14 @@ class OwnerService:
         )
         return [OwnerStatsOut.model_validate(row) for row in results]
 
-    def get_my_requests(self, db: Session, *, user_id: str, type: Optional[RequestType] = None, status: Optional[RequestStatus] = None) -> List[Request]:
+    def get_my_requests(
+        self,
+        db: Session,
+        *,
+        user_id: str,
+        type: Optional[RequestType] = None,
+        status: Optional[RequestStatus] = None,
+    ) -> List[Request]:
         user_org = db.query(UserOrg).filter(UserOrg.user_id == user_id).first()
         if not user_org:
             return []

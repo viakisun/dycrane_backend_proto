@@ -8,8 +8,8 @@ from contextlib import contextmanager
 from typing import Generator
 
 from sqlalchemy import create_engine, event, text
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from server.config import settings
 
@@ -22,14 +22,14 @@ Base = declarative_base()
 
 class DatabaseManager:
     """Manages database connections and sessions."""
-    
+
     def __init__(self):
         self.engine = None
         self.SessionLocal = None
         self.Base = Base  # Make Base accessible through the manager
         self._initialize_engine()
         self._setup_events()
-    
+
     def _initialize_engine(self) -> None:
         """Initialize SQLAlchemy engine with configuration."""
         try:
@@ -38,32 +38,32 @@ class DatabaseManager:
                 future=True,
                 echo=settings.DB_ECHO,
                 pool_pre_ping=settings.DB_POOL_PRE_PING,
-                pool_recycle=settings.DB_POOL_RECYCLE
+                pool_recycle=settings.DB_POOL_RECYCLE,
             )
-            
+
             self.SessionLocal = sessionmaker(
-                bind=self.engine,
-                autoflush=False,
-                autocommit=False,
-                future=True
+                bind=self.engine, autoflush=False, autocommit=False, future=True
             )
-            
+
             logger.info(
                 "Database engine initialized successfully",
                 extra={
-                    "database_url": settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else settings.DATABASE_URL,
+                    "database_url": settings.DATABASE_URL.split("@")[1]
+                    if "@" in settings.DATABASE_URL
+                    else settings.DATABASE_URL,
                     "pool_recycle": settings.DB_POOL_RECYCLE,
-                    "echo": settings.DB_ECHO
-                }
+                    "echo": settings.DB_ECHO,
+                },
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize database engine: {e}")
             raise
-    
+
     def _setup_events(self) -> None:
         """Set up database event listeners."""
         if self.engine:
+
             @event.listens_for(self.engine, "connect")
             def _set_search_path(dbapi_conn, conn_record):
                 """Set PostgreSQL search path to ops schema for all connections."""
@@ -73,7 +73,7 @@ class DatabaseManager:
                     logger.debug("Search path set to 'ops, public' for new connection")
                 except Exception as e:
                     logger.warning(f"Failed to set search path: {e}")
-    
+
     @contextmanager
     def get_session(self) -> Generator[Session, None, None]:
         """
@@ -82,7 +82,7 @@ class DatabaseManager:
         """
         if not self.SessionLocal:
             raise RuntimeError("Database not initialized")
-        
+
         session = self.SessionLocal()
         try:
             yield session
@@ -96,7 +96,7 @@ class DatabaseManager:
             raise
         finally:
             session.close()
-    
+
     def health_check(self) -> bool:
         """
         Check database connectivity and basic functionality.
@@ -110,7 +110,7 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Database health check failed: {e}")
             return False
-    
+
     def close(self) -> None:
         """Close database connections and clean up resources."""
         if self.engine:
@@ -121,12 +121,13 @@ class DatabaseManager:
 # Create global database manager instance
 db_manager = DatabaseManager()
 
+
 # Convenience function for FastAPI dependency injection
 def get_db():
     """Database session dependency for FastAPI endpoints."""
     if not db_manager.SessionLocal:
         raise RuntimeError("Database not initialized")
-    
+
     session = db_manager.SessionLocal()
     try:
         yield session

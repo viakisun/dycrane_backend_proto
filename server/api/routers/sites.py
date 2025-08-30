@@ -1,11 +1,11 @@
 import logging
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from server.database import get_db
-from server.domain.schemas import SiteCreate, SiteOut, SiteApprove
+from server.domain.schemas import SiteApprove, SiteCreate, SiteOut
 from server.domain.services import site_service
 
 router = APIRouter()
@@ -20,10 +20,12 @@ def create_site(payload: SiteCreate, db: Session = Depends(get_db)):
     return site_service.create_site(db=db, site_in=payload)
 
 
-from typing import Optional
-
 @router.get("/", response_model=List[SiteOut])
-def list_sites(db: Session = Depends(get_db), mine: Optional[bool] = None, user_id: Optional[str] = None):
+def list_sites(
+    db: Session = Depends(get_db),
+    mine: Optional[bool] = None,
+    user_id: Optional[str] = None,
+):
     """
     List all construction sites.
     If 'mine' is true, returns only sites relevant to the user_id.
@@ -37,4 +39,6 @@ def approve_site(site_id: str, payload: SiteApprove, db: Session = Depends(get_d
     """
     Approve a construction site.
     """
-    return site_service.approve_site(db=db, site_id=site_id, approved_by_id=payload.approved_by_id)
+    return site_service.approve_site(
+        db=db, site_id=site_id, approved_by_id=payload.approved_by_id
+    )

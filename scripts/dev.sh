@@ -57,6 +57,16 @@ initialize_database() {
     success "Database initialized successfully."
 }
 
+# --- Linter & Type Checker ---
+run_linting() {
+    step "Running Linters and Type Checkers"
+    sub_step "Running ruff check..."
+    "$VENV_PATH/bin/ruff" check "$PROJECT_ROOT/server"
+    sub_step "Running mypy..."
+    "$VENV_PATH/bin/mypy" "$PROJECT_ROOT/server"
+    success "All static analysis checks passed."
+}
+
 # --- Test Execution ---
 run_tests() {
     step "Running E2E Tests"
@@ -125,12 +135,15 @@ case "$1" in
     "db")
         initialize_database
         ;;
+    "lint")
+        run_linting
+        ;;
     "test" | "test/verbose")
         initialize_database
         run_tests "$1"
         ;;
     *)
-        echo "Usage: $0 {db|test|test/verbose}"
+        echo "Usage: $0 {db|lint|test|test/verbose}"
         exit 1
         ;;
 esac

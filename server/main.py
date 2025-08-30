@@ -11,40 +11,47 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
+from server.api.routes import api_router
 from server.config import settings
 from server.database import db_manager
-from server.api.routes import api_router
 
 
 def configure_logging():
     """Configure application logging with appropriate formatters and levels."""
-    
+
     # Create formatter
     formatter = logging.Formatter(settings.LOG_FORMAT)
-    
+
     # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(settings.get_log_level())
-    
+
     # Clear existing handlers to avoid duplication
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
-    
+
     # Console handler with formatting
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(settings.get_log_level())
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
-    
+
     # Set specific logger levels
     logging.getLogger("uvicorn").setLevel(logging.INFO)
-    logging.getLogger("uvicorn.access").setLevel(logging.WARNING if not settings.is_development() else logging.INFO)
-    logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING if not settings.DB_ECHO else logging.INFO)
-    
+    logging.getLogger("uvicorn.access").setLevel(
+        logging.WARNING if not settings.is_development() else logging.INFO
+    )
+    logging.getLogger("sqlalchemy.engine").setLevel(
+        logging.WARNING if not settings.DB_ECHO else logging.INFO
+    )
+
     # Log startup configuration
     logger = logging.getLogger(__name__)
     logger.info(
-        f"Logging configured - Level: {settings.LOG_LEVEL}, Environment: {settings.is_development() and 'development' or 'production'}"
+        (
+            f"Logging configured - Level: {settings.LOG_LEVEL}, Environment: "
+            f"{settings.is_development() and 'development' or 'production'}"
+        )
     )
 
 
@@ -55,24 +62,26 @@ async def lifespan(app: FastAPI):
     Handles startup and shutdown procedures.
     """
     logger = logging.getLogger(__name__)
-    
+
     # Startup
     logger.info("=" * 60)
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info("=" * 60)
-    
+
     # Database health check
     if db_manager.health_check():
         logger.info("Database connectivity verified")
     else:
         logger.error("Database connectivity check failed")
         logger.warning("Application starting anyway - check database configuration")
-    
+
     logger.info(f"API server ready at http://{settings.API_HOST}:{settings.API_PORT}")
-    logger.info(f"Documentation available at http://{settings.API_HOST}:{settings.API_PORT}/docs")
-    
+    logger.info(
+        f"Documentation available at http://{settings.API_HOST}:{settings.API_PORT}/docs"
+    )
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down application...")
     db_manager.close()
@@ -82,11 +91,11 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application.
-    
+
     Returns:
         FastAPI: Configured application instance
     """
-    
+
     app = FastAPI(
         title=settings.APP_NAME,
         description=settings.APP_DESCRIPTION,
@@ -95,7 +104,7 @@ def create_app() -> FastAPI:
         docs_url="/docs" if settings.is_development() else None,
         redoc_url="/redoc" if settings.is_development() else None,
     )
-    
+
     # CORS middleware for development
     if settings.is_development():
         app.add_middleware(
@@ -105,16 +114,16 @@ def create_app() -> FastAPI:
             allow_methods=["*"],
             allow_headers=["*"],
         )
-    
+
     # Include API routes
     app.include_router(api_router)
-    
+
     # Root redirect to documentation
     @app.get("/", include_in_schema=False)
     async def root():
         """Redirect root requests to API documentation."""
         return RedirectResponse(url="/docs")
-    
+
     return app
 
 
@@ -135,10 +144,13 @@ def main():
     Starts the uvicorn development server.
     """
     import uvicorn
-    
+
     logger.info("Starting development server...")
-    logger.info(f"Server configuration: {settings.API_HOST}:{settings.API_PORT} (reload={settings.API_RELOAD})")
-    
+    logger.info(
+        f"Server configuration: {settings.API_HOST}:{settings.API_PORT} "
+        f"(reload={settings.API_RELOAD})"
+    )
+
     try:
         uvicorn.run(
             "server.main:app",
@@ -146,7 +158,7 @@ def main():
             port=settings.API_PORT,
             log_level=settings.LOG_LEVEL.lower(),
             reload=settings.API_RELOAD,
-            access_log=settings.is_development()
+            access_log=settings.is_development(),
         )
     except KeyboardInterrupt:
         logger.info("Server stopped by user")

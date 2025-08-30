@@ -1,10 +1,10 @@
-import logging
 import datetime as dt
+import logging
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from server.database import get_db, db_manager
+from server.database import db_manager, get_db
 from server.domain.schemas import HealthCheckResponse
 
 router = APIRouter()
@@ -23,7 +23,7 @@ def health_check(db: Session = Depends(get_db)):
     response = HealthCheckResponse(
         status="healthy" if database_healthy else "degraded",
         timestamp=dt.datetime.utcnow(),
-        database_healthy=database_healthy
+        database_healthy=database_healthy,
     )
 
     if not database_healthy:
