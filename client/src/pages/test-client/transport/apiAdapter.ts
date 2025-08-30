@@ -30,8 +30,7 @@ async function request<T>(
 
   const requestConfig: AxiosRequestConfig = {
     ...config,
-    headers,
-    baseURL: `${context.host || 'http://localhost:8000'}`
+    headers
   };
 
   actions.addLog({
