@@ -19,6 +19,7 @@ api_router.include_router(cranes.router, prefix="/cranes", tags=["cranes"])
 api_router.include_router(
     crane_models.router, prefix="/crane-models", tags=["crane-models"]
 )
+api_router.include_router(owners.router, prefix="/owners", tags=["owners"])
 api_router.include_router(
     assignments.router, prefix="/assignments", tags=["assignments"]
 )
