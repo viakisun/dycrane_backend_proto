@@ -18,19 +18,6 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.get("/owners/{owner_org_id}/cranes", response_model=List[CraneOut])
-def list_owner_cranes(
-    owner_org_id: str,
-    status: Optional[CraneStatus] = None,
-    db: Session = Depends(get_db),
-):
-    """
-    List all cranes owned by a specific organization, with an optional filter for
-    status.
-    """
-    return crane_service.list_owner_cranes(
-        db=db, owner_org_id=owner_org_id, status=status
-    )
 
 
 @router.post(
