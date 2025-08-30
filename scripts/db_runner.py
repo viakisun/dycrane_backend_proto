@@ -3,6 +3,13 @@ import sys
 import psycopg2
 from psycopg2 import sql
 
+# This is a standalone script, so we need to set up the path
+# to import from the server directory.
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from scripts.procedural_seed import seed_data
+from server.database import db_manager
+
 # --- Configuration ---
 # Read connection details from environment variables
 DB_HOST = os.getenv("PGHOST", "localhost")
@@ -110,20 +117,25 @@ def run_db_init():
         execute_sql_file(conn, SQL_FILES["init_db"])
         conn.close()
 
-def run_db_seed():
-    """Seeds the database with initial data."""
-    conn = get_db_connection()
-    if conn:
-        execute_sql_file(conn, SQL_FILES["seed"])
-        conn.close()
+def run_procedural_seed():
+    """Seeds the database with initial data using the procedural script."""
+    print_info("Running procedural seed...")
+    with db_manager.get_session() as db:
+        try:
+            seed_data(db)
+            print_success("Procedural seeding complete.")
+        except Exception as e:
+            print_error(f"An error occurred during procedural seeding: {e}")
+            db.rollback()
+            sys.exit(1)
 
 def run_db_reset():
     """Resets the database by truncating tables and reseeding."""
     conn = get_db_connection()
     if conn:
         execute_sql_file(conn, SQL_FILES["truncate"])
-        execute_sql_file(conn, SQL_FILES["seed"])
         conn.close()
+    run_procedural_seed()
 
 def run_full_setup():
     """Runs the full database setup: init, views, truncate, seed."""
@@ -133,8 +145,8 @@ def run_full_setup():
     if conn:
         execute_sql_file(conn, SQL_FILES["init_view"])
         execute_sql_file(conn, SQL_FILES["truncate"])
-        execute_sql_file(conn, SQL_FILES["seed"])
         conn.close()
+    run_procedural_seed()
     print_success("Full database setup complete.")
 
 if __name__ == "__main__":
@@ -144,7 +156,7 @@ if __name__ == "__main__":
         if command == "init":
             run_db_init()
         elif command == "seed":
-            run_db_seed()
+            run_procedural_seed()
         elif command == "reset":
             run_db_reset()
         elif command == "full":
