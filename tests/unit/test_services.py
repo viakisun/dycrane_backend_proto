@@ -4,9 +4,14 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from server.domain.services import SiteService, UserService
-from server.domain.schemas import SiteCreate, UserRole, SiteStatus
-from server.domain.models import User, Site
+from server.domain.services import SiteService, UserService, AssignmentService
+from server.domain.schemas import SiteCreate, UserRole, SiteStatus, AssignCraneIn
+from server.domain.models import User, Site, SiteCraneAssignment
+
+@pytest.fixture
+def assignment_service(user_service):
+    """Provides an AssignmentService instance with a mocked user_service."""
+    return AssignmentService(user_service=user_service)
 
 @pytest.fixture
 def db_session():
@@ -120,3 +125,37 @@ def test_approve_site_wrong_status(site_service, user_service, db_session):
             site_service.approve_site(db=db_session, site_id=site_id, approved_by_id=approver_id)
         assert exc_info.value.status_code == 400
         assert "cannot approve" in str(exc_info.value.detail)
+
+def test_assign_crane_to_site_conflict(assignment_service, user_service, db_session):
+    """
+    Tests crane assignment when the crane is already assigned during the requested period.
+    """
+    # Arrange
+    assignment_in = AssignCraneIn(
+        site_id="site-1",
+        crane_id="crane-1",
+        safety_manager_id="sm-1",
+        start_date=dt.date(2025, 1, 10),
+        end_date=dt.date(2025, 1, 20),
+    )
+    mock_user = User(id="sm-1", role=UserRole.SAFETY_MANAGER, is_active=True)
+    user_service.get_user_and_validate_role.return_value = mock_user
+
+    # Mock an existing, overlapping assignment
+    existing_assignment = SiteCraneAssignment(
+        id="as-1",
+        crane_id="crane-1",
+        site_id="site-0",
+        start_date=dt.date(2025, 1, 15),
+        end_date=dt.date(2025, 1, 25),
+    )
+
+    # Configure the mock query to return the overlapping assignment
+    db_session.query.return_value.filter.return_value.first.return_value = existing_assignment
+
+    # Act & Assert
+    with pytest.raises(HTTPException) as exc_info:
+        assignment_service.assign_crane_to_site(db=db_session, assignment_in=assignment_in)
+
+    assert exc_info.value.status_code == 409
+    assert "already assigned" in str(exc_info.value.detail)
