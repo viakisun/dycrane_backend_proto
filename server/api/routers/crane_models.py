@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from server.database import get_db
 from server.domain.schemas import CraneModelOut
-from server.domain.services.crane_model_service import crane_model_service
+from server.domain.services import crane_model_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
