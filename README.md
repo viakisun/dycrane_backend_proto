@@ -1,171 +1,73 @@
 # DY Crane Safety Management API
 
-This project is the backend API for the DY Crane Safety Management System. It provides a RESTful API for managing construction sites, cranes, drivers, and safety documents.
+Welcome to the DY Crane Safety Management project! This repository contains the backend API and a frontend interactive test client for a comprehensive crane safety management system.
 
-## Getting Started
+The primary goal of this project is to provide a robust, well-documented, and maintainable system for managing construction sites, cranes, drivers, and safety documents. A key feature is the **Developer Guide Test Client**, which serves as a living, interactive form of documentation for the entire business workflow.
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+## Project Documentation
 
-### Prerequisites
+This project is documented across several files to provide clear, targeted information for different needs:
 
-*   Python 3.8+
-*   PowerShell 7+ (for Windows) or a bash-compatible shell (for Linux/macOS)
-*   PostgreSQL 13+
-*   `psql` command-line client (optional, but recommended)
+-   **[README.md](README.md)** (You are here): High-level overview and project entry point.
+-   **[CONTRIBUTING.md](CONTRIBUTING.md)**: The essential guide for developers. Contains detailed instructions on setting up your local environment, running the application, and contributing to the project.
+-   **[TEST_CLIENT_GUIDE.md](TEST_CLIENT_GUIDE.md)**: A detailed guide to the interactive `/test-client`, explaining each step of the business workflow (A1-F2) and how to use the UI.
+-   **[openapi.yaml](openapi.yaml)**: The full OpenAPI (Swagger) specification for the backend API.
+-   **[RELEASES.md](RELEASES.md)**: Contains release notes and a summary of changes for each version.
 
-### Installation
+## Quick Start
 
-1.  **Clone the repository**
+For the full development setup guide, please see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+
+Here is a brief overview of the steps:
+
+1.  **Prerequisites**: Ensure you have Git, PostgreSQL, Python 3.8+, and Node.js 16+ installed.
+2.  **Clone & Configure**:
     ```sh
-    git clone https://github.com/viakisun/dycrane_backend_proto
+    git clone https://github.com/your-username/dycrane_backend_proto.git
     cd dycrane_backend_proto
-    ```
-
-2.  **Create a `.env` file**
-    Copy the `.env.example` file to a new file named `.env` and update the database connection details.
-    ```sh
     cp .env.example .env
+    # Edit .env with your PostgreSQL details
     ```
-
-3.  **Set up the database**
-    Make sure you have a running PostgreSQL instance and that the user specified in your `.env` file has permission to create databases.
-
-4.  **Run the database setup script**
-    This will create the database, tables, and seed it with initial data.
+3.  **Initialize & Seed Database**:
+    This command sets up the Python virtual environment, installs dependencies, creates the database, and seeds it with master data.
     ```sh
-    ./scripts/dev.sh db
+    ./scripts/dev.sh db/full
     ```
-
-## Usage
-
-### Development Scripts
-
-The development scripts are the main entry point for development tasks.
-
-**For Windows (PowerShell):**
-```powershell
-# Initialize the database
-./scripts/dev.ps1 -Command db
-
-# Run all tests
-./scripts/dev.ps1 -Command test
-
-# Run all tests with verbose output
-./scripts/dev.ps1 -Command test/verbose
-```
-
-**For Linux/macOS (Bash):**
-```sh
-# Initialize the database
-./scripts/dev.sh db
-
-# Run all tests
-./scripts/dev.sh test
-
-# Run all tests with verbose output
-./scripts/dev.sh test/verbose
-```
-
-### Running the API Server
-To run the API server directly for development, use `uvicorn`:
-```sh
-uvicorn server.main:app --reload
-```
-
-### Running the Frontend Test Client
-The `client` directory contains a TypeScript-based React application to visually test the API workflow.
-
-1.  **Navigate to the client directory:**
+4.  **Run Backend Server**:
+    ```sh
+    .venv/bin/uvicorn server.main:app --reload
+    # API is now running on http://localhost:8000
+    ```
+5.  **Run Frontend Dev Server**:
+    In a new terminal:
     ```sh
     cd client
-    ```
-
-2.  **Install dependencies:**
-    ```sh
     npm install
-    ```
-
-3.  **Run the client:**
-    ```sh
     npm run dev
+    # Frontend is now running on http://localhost:3000
     ```
-    This will start the client on `http://localhost:3000`. The client will proxy API requests to the backend server running on port 8000.
 
-## Testing
+## Using the Developer Guide Test Client
 
-This project includes both End-to-End (E2E) and unit tests to ensure the quality and correctness of the application.
+Navigate to `http://localhost:3000/test-client` in your browser to access the interactive workflow tool.
 
-### Test Suites
+-   **Purpose**: To visualize, test, and understand the end-to-end business logic.
+-   **"Auto Run All"**: Executes the entire A1-F2 workflow.
+-   **"Reset Workflow Data"**: Before running the workflow, especially for a second time, press this button. It clears all previous transactional data from the server to prevent `409 Conflict` errors.
 
-*   **End-to-End (E2E) Tests (`tests/e2e`):** These tests simulate the full user workflow from a client's perspective, making real HTTP requests to the API.
-    *   `test_workflow.py`: This test covers the 9-step business workflow. **Note:** This test is currently partially implemented and will be completed as the backend services are refactored.
-    *   `test_healthcheck.py`: A simple test to check if the API is running and connected to the database.
-
-*   **Unit Tests (`tests/unit`):** These tests cover individual components of the application in isolation.
-    *   `test_services.py`: Tests the business logic in the service layer.
-    *   `test_repositories.py`: Tests the data access logic in the repository layer using an in-memory SQLite database.
-    *   `test_routers.py`: Tests the API routers to ensure they handle requests and responses correctly.
-
-## Project Status
-
-This project is currently in a transitional phase of refactoring from a monolithic structure with business logic in stored procedures to a modern, layered architecture with business logic in a Python-based service layer.
-
-**Completed tasks:**
-*   **Project Structure:** The codebase has been reorganized into a layered architecture (`server/api`, `server/domain`, etc.).
-*   **Configuration:** Configuration management has been updated to use `pydantic-settings`.
-*   **Core Services:** The services for Site and Crane management have been refactored to use the new repository and service pattern.
-*   **E2E Tests:** A new End-to-End test suite has been created in `tests/e2e`. The test for the main business workflow (`test_workflow.py`) currently covers the refactored services (Site creation, approval, and Crane listing).
-*   **Development Scripts:** A `scripts/dev.sh` script has been created to automate database setup and test execution.
-
-**Next Steps / To-Do:**
-*   **Complete Service Refactoring:** The remaining business logic (for assignments, documents, attendance, etc.) needs to be moved from `StoredProcedureService` to the new service layer.
-*   **Complete E2E Workflow Test:** The `test_workflow.py` needs to be completed to cover all 9 steps of the business workflow as the services are refactored.
-*   **Remove Stored Procedures:** Once all business logic is in the service layer, the stored procedures in `sql/procs.sql` can be removed.
+For a full explanation of each step and how to use the client, please read the **[TEST_CLIENT_GUIDE.md](TEST_CLIENT_GUIDE.md)**.
 
 ## Project Structure
 
-The project is organized into a layered architecture:
+The project is organized into a layered architecture for the backend and a modern component-based structure for the frontend.
 
-```
-repo-root/
-├─ server/
-│  ├─ __init__.py
-│  ├─ main.py                # FastAPI app creation and entry point
-│  ├─ config.py              # Pydantic settings configuration
-│  ├─ database.py            # Database session management
-│  ├─ api/
-│  │  ├─ __init__.py
-│  │  ├─ routes.py            # Main API router
-│  │  └─ routers/             # Resource-specific routers
-│  │     ├─ sites.py
-│  │     ├─ cranes.py
-│  │     ├─ assignments.py
-│  │     └─ documents.py
-│  ├─ domain/
-│  │  ├─ __init__.py
-│  │  ├─ models.py            # SQLAlchemy ORM models
-│  │  ├─ schemas.py           # Pydantic schemas
-│  │  ├─ repositories.py      # Data access layer
-│  │  └─ services.py          # Business logic layer
-│  └─ ...
-├─ tests/
-│  └─ e2e/                   # End-to-end tests
-│     ├─ client.py
-│     ├─ fixtures.py
-│     ├─ validators.py
-│     ├─ test_healthcheck.py
-│     └─ test_workflow.py
-├─ scripts/
-│  ├─ dev.sh                 # Main development script (for bash)
-│  ├─ dev.ps1                # Original PowerShell script
-│  └─ db_runner.py           # Python fallback for DB operations
-├─ sql/                       # SQL scripts for DB setup
-│  ├─ init_db.sql
-│  ├─ init_view.sql
-│  ├─ truncate.sql
-│  └─ seed.sql
-├─ .env.example               # Example environment variables
-├─ .gitignore
-├─ requirements.txt
-└─ README.md
-```
+-   `server/`: Python FastAPI backend.
+    -   `api/`: API routers and endpoints.
+    -   `domain/`: Core business logic, schemas, and database models.
+    -   `sql/`: Database schema and reset scripts.
+-   `client/`: TypeScript React frontend (Vite).
+    -   `src/pages/test-client/`: The source code for the developer guide test client.
+-   `scripts/`: Helper scripts for development and database management.
+-   `tests/`: E2E and unit tests.
+
+We encourage you to read **[CONTRIBUTING.md](CONTRIBUTING.md)** for a deeper dive into the project structure and our development practices.
