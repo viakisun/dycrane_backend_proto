@@ -1,6 +1,6 @@
 import React from 'react';
-import { useWorkflowStore } from '../state/workflowStore';
-import { WORKFLOW_STEPS } from '../workflow-def';
+import { useWorkflowStore } from './test-client/state/workflowStore';
+import { WORKFLOW_STEPS } from './test-client/workflow-def';
 import { WorkflowStepCard } from './test-client/ui/WorkflowStepCard';
 
 const TestClientPage: React.FC = () => {
