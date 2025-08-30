@@ -1,0 +1,85 @@
+{
+	"blocks": [
+		{
+			"type": "header",
+			"text": {
+				"type": "plain_text",
+				"text": "🚀 DY Crane Safety - v0.1.0 Release"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "This is the initial release of the **DY Crane Safety Management developer toolkit**. The primary focus of this release was to build a comprehensive, interactive test client to serve as a living developer guide for the backend API and business workflow."
+			},
+			"accessory": {
+				"type": "image",
+				"image_url": "https://i.imgur.com/rGsy21d.png",
+				"alt_text": "Crane Icon"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*✨ New Features*"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Developer Guide Test Client (`/test-client`)*\n A new, three-panel UI inspired by modern developer tools, featuring a workflow rail, a detailed step panel, and a real-time log console."
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*Server State Reset Functionality*\n A new API endpoint (`POST /api/health/reset-transactional`) and UI button to clear transactional data, enabling robust, repeatable testing."
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*🐞 Major Bug Fixes*"
+			}
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "This release includes the resolution of a complex series of interconnected bugs:\n• *Blank Page on Load*: Fixed a circular dependency.\n• *404 Not Found*: Corrected an incorrect API call.\n• *409 Conflict*: Implemented the server state reset feature.\n• *400/422 Errors*: Solved multiple subtle data type and workflow sequence issues."
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "For full details, please visit the project repository."
+			},
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "View on GitHub",
+					"emoji": true
+				},
+				"value": "click_me_123",
+				"url": "https://github.com/viakisun/dycrane_backend_proto",
+				"action_id": "button-action"
+			}
+		}
+	]
+}
