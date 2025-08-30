@@ -5,8 +5,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from server.database import get_db
-from server.domain.schemas import OwnerStatsOut, RequestOut, RequestStatus, RequestType
-from server.domain.services import owner_service
+from server.domain.schemas import (
+    CraneOut,
+    CraneStatus,
+    OwnerStatsOut,
+    RequestOut,
+    RequestStatus,
+    RequestType,
+)
+from server.domain.services import owner_service, crane_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -25,6 +32,19 @@ def list_owners_with_stats(db: Session = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
+
+
+@router.get("/{owner_id}/cranes", response_model=List[CraneOut])
+def list_owner_cranes(
+    owner_id: str,
+    status: Optional[CraneStatus] = None,
+    db: Session = Depends(get_db),
+):
+    """
+    List all cranes owned by a specific organization, with an optional filter for
+    status.
+    """
+    return crane_service.list_owner_cranes(db=db, owner_org_id=owner_id, status=status)
 
 
 @router.get("/me/requests", response_model=List[RequestOut])
