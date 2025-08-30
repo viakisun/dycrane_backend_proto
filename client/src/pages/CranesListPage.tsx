@@ -10,11 +10,19 @@ enum CraneStatus {
     INBOUND = "INBOUND",
 }
 
-interface Crane {
+interface CraneModel {
     id: string;
     model_name: string;
+    max_lifting_capacity_ton_m?: number;
+    max_working_height_m?: number;
+    max_working_radius_m?: number;
+}
+
+interface Crane {
+    id: string;
     serial_no: string;
     status: CraneStatus;
+    model: CraneModel;
 }
 
 const CranesListPage: React.FC = () => {
@@ -78,8 +86,12 @@ const CranesListPage: React.FC = () => {
                 {cranes.map((crane) => (
                     <div key={crane.id} className="bg-gray-800 p-6 rounded-lg border border-gray-700 flex flex-col justify-between">
                         <div>
-                            <h2 className="text-xl font-bold text-white">{crane.model_name}</h2>
-                            <p className="text-sm text-gray-400">{crane.serial_no}</p>
+                            <h2 className="text-xl font-bold text-white">{crane.model.model_name}</h2>
+                            <p className="text-sm text-gray-400">S/N: {crane.serial_no}</p>
+                            <div className="mt-2 text-xs text-gray-500 space-y-1">
+                                <p>Max Lift: {crane.model.max_lifting_capacity_ton_m} ton·m</p>
+                                <p>Max Height: {crane.model.max_working_height_m} m</p>
+                            </div>
                         </div>
                         <div className="mt-4 flex justify-between items-center">
                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${

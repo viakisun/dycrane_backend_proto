@@ -12,6 +12,7 @@ from server.domain.models import (
     DriverAttendance,
     Base,
     Crane,
+    CraneModel,
     DriverAssignment,
     DriverDocumentItem,
     DriverDocumentRequest,
@@ -37,6 +38,8 @@ from server.domain.schemas import (
     SiteUpdate,
     UserCreate,
     UserUpdate,
+    CraneModelCreate,
+    CraneModelUpdate,
 )
 
 # Define custom types for SQLAlchemy models and Pydantic schemas
@@ -211,11 +214,13 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         return cast(Optional[User], db.query(User).filter(User.email == email).first())
 
 
+from sqlalchemy.orm import joinedload
+
 class CraneRepository(BaseRepository[Crane, CraneCreate, CraneUpdate]):
     def get_by_owner(
         self, db: Session, *, owner_org_id: str, status: Optional[CraneStatus] = None
     ) -> List[Crane]:
-        query = db.query(Crane).filter(Crane.owner_org_id == owner_org_id)
+        query = db.query(Crane).options(joinedload(Crane.model)).filter(Crane.owner_org_id == owner_org_id)
         if status:
             query = query.filter(Crane.status == status)
         return cast(List[Crane], query.all())
@@ -255,9 +260,14 @@ class AttendanceRepository(
     pass
 
 
+class CraneModelRepository(BaseRepository[CraneModel, CraneModelCreate, CraneModelUpdate]):
+    pass
+
+
 site_repo = SiteRepository(Site)
 user_repo = UserRepository(User)
 crane_repo = CraneRepository(Crane)
+crane_model_repo = CraneModelRepository(CraneModel)
 site_crane_assignment_repo = SiteCraneAssignmentRepository(SiteCraneAssignment)
 driver_assignment_repo = DriverAssignmentRepository(DriverAssignment)
 document_request_repo = DocumentRequestRepository(DriverDocumentRequest)

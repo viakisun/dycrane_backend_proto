@@ -6,6 +6,7 @@ import OwnersListPage from './pages/OwnersListPage';
 import TestClientPage from './pages/TestClientPage';
 import CranesListPage from './pages/CranesListPage';
 import RequestsListPage from './pages/RequestsListPage';
+import CraneModelSearchPage from './pages/CraneModelSearchPage';
 import './components/Particles.css';
 
 const App: React.FC = () => {
@@ -35,6 +36,9 @@ const App: React.FC = () => {
               <NavLink to="/sites" className={navLinkClasses}>
                 Sites
               </NavLink>
+              <NavLink to="/crane-models" className={navLinkClasses}>
+                Crane Models
+              </NavLink>
               <NavLink to="/requests" className={navLinkClasses}>
                 Requests
               </NavLink>
@@ -52,6 +56,7 @@ const App: React.FC = () => {
           <Route path="/owners" element={<OwnersListPage />} />
           <Route path="/owners/:ownerId/cranes" element={<CranesListPage />} />
           <Route path="/requests" element={<RequestsListPage />} />
+          <Route path="/crane-models" element={<CraneModelSearchPage />} />
           <Route path="/test-client" element={<TestClientPage />} />
           {/* Add other routes here as pages are created */}
         </Routes>

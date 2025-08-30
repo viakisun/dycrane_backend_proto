@@ -17,6 +17,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+from sqlalchemy.orm import relationship
 
 from server.database import Base
 from server.domain.schemas import (
@@ -113,8 +114,33 @@ class Site(Base, TimestampMixin):
         return f"<Site(id={self.id}, name={self.name}, status={self.status})>"
 
 
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY
+from sqlalchemy import Numeric
+
+class CraneModel(Base, TimestampMixin):
+    """Crane model with detailed specifications."""
+
+    __tablename__ = "crane_models"
+    __table_args__ = {"schema": "ops"}
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    model_name = Column(String, nullable=False, unique=True)
+    max_lifting_capacity_ton_m = Column(Integer)
+    max_working_height_m = Column(Numeric(5, 2))
+    max_working_radius_m = Column(Numeric(5, 2))
+    iver_torque_phi_mm = Column(String)
+    boom_sections = Column(Integer)
+    tele_speed_m_sec = Column(String)
+    boom_angle_speed_deg_sec = Column(String)
+    lifting_load_distance_kg_m = Column(JSONB)
+    optional_specs = Column(ARRAY(String))
+
+    def __repr__(self) -> str:
+        return f"<CraneModel(id={self.id}, model_name={self.model_name})>"
+
+
 class Crane(Base, TimestampMixin):
-    """Crane model owned by organizations."""
+    """Crane instance owned by an organization, based on a model."""
 
     __tablename__ = "cranes"
     __table_args__ = {"schema": "ops"}
@@ -126,14 +152,21 @@ class Crane(Base, TimestampMixin):
         nullable=False,
         index=True,
     )
-    model_name = Column(String, nullable=False)
+    model_id = Column(
+        String,
+        ForeignKey("ops.crane_models.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
     serial_no = Column(String, unique=True)
     status = Column(
         Enum(CraneStatus), default=CraneStatus.NORMAL, nullable=False, index=True
     )
 
+    model = relationship("CraneModel")
+
     def __repr__(self) -> str:
-        return f"<Crane(id={self.id}, model={self.model_name}, status={self.status})>"
+        return f"<Crane(id={self.id}, serial_no={self.serial_no}, status={self.status})>"
 
 
 class SiteCraneAssignment(Base, TimestampMixin):
