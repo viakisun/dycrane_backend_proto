@@ -119,6 +119,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
           if (result) {
             const newContext = { ...get().context, ...result };
             set({ context: newContext });
+            console.log(`Context after step ${stepCode}:`, newContext); // DEBUG LOG
           }
         }
 
