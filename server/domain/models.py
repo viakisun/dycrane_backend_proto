@@ -116,7 +116,12 @@ class Site(Base, TimestampMixin):
 
 
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
-from sqlalchemy import Numeric
+from sqlalchemy import Numeric, JSON
+
+# Use JSON for SQLite and JSONB for other dialects like PostgreSQL
+JsonVariant = JSON().with_variant(JSONB, 'postgresql')
+ArrayVariant = JSON().with_variant(ARRAY(String), 'postgresql')
+
 
 class CraneModel(Base, TimestampMixin):
     """Crane model with detailed specifications."""
@@ -133,8 +138,8 @@ class CraneModel(Base, TimestampMixin):
     boom_sections = Column(Integer)
     tele_speed_m_sec = Column(String)
     boom_angle_speed_deg_sec = Column(String)
-    lifting_load_distance_kg_m = Column(JSONB)
-    optional_specs = Column(ARRAY(String))
+    lifting_load_distance_kg_m = Column(JsonVariant)
+    optional_specs = Column(ArrayVariant)
 
     def __repr__(self) -> str:
         return f"<CraneModel(id={self.id}, model_name={self.model_name})>"

@@ -7,7 +7,7 @@ from server.domain.schemas import SiteOut, SiteCreate, SiteStatus
 @pytest.fixture
 def client():
     """Provides a TestClient instance for testing the API."""
-    return TestClient(app, root_path="/api")
+    return TestClient(app)
 
 def test_create_site_router(client):
     # Arrange

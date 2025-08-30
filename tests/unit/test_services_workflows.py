@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
+from collections import namedtuple
 
 from server.domain.services import request_service, owner_service, crane_model_service, user_repo
 from server.domain.schemas import RequestCreate, RequestUpdate, RequestType, RequestStatus, UserRole
@@ -55,9 +56,12 @@ class TestRequestService:
 class TestOwnerService:
     def test_get_owners_with_stats(self, db_session_mock):
         # Arrange
+        # The query returns a list of Row objects, which allow attribute access.
+        # We can mimic this with a namedtuple.
+        Row = namedtuple('Row', ['id', 'name', 'total_cranes', 'available_cranes'])
         mock_stats = [
-            MagicMock(id='org-1', name='Owner A', total_cranes=10, available_cranes=5),
-            MagicMock(id='org-2', name='Owner B', total_cranes=8, available_cranes=8),
+            Row(id='org-1', name='Owner A', total_cranes=10, available_cranes=5),
+            Row(id='org-2', name='Owner B', total_cranes=8, available_cranes=8),
         ]
         db_session_mock.query.return_value.outerjoin.return_value.filter.return_value.group_by.return_value.order_by.return_value.all.return_value = mock_stats
 
