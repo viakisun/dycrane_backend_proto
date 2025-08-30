@@ -7,47 +7,55 @@ const StepPanel: React.FC = () => {
   const { selectedStep: selectedStepCode } = useWorkflowStore();
   const selectedStep = WORKFLOW_STEPS.find(step => step.code === selectedStepCode) || WORKFLOW_STEPS[0];
 
+  const tabStyle = "px-4 py-2 text-sm transition-colors duration-150";
+  const activeTabStyle = "border-b-2 border-[#0e639c] text-white";
+  const inactiveTabStyle = "text-gray-400 hover:bg-[#2a2d2e]";
+
   return (
-    <div className="bg-gray-800 text-white p-4 rounded-lg">
-      <div className="flex border-b border-gray-700">
+    <div className="bg-[#252526] p-4 rounded-lg h-full">
+      <div className="flex border-b border-[#37373d]">
         <button
-          className={`px-4 py-2 ${activeTab === 'description' ? 'border-b-2 border-blue-500' : ''}`}
+          className={`${tabStyle} ${activeTab === 'description' ? activeTabStyle : inactiveTabStyle}`}
           onClick={() => setActiveTab('description')}
         >
           Description
         </button>
         <button
-          className={`px-4 py-2 ${activeTab === 'data-flow' ? 'border-b-2 border-blue-500' : ''}`}
+          className={`${tabStyle} ${activeTab === 'data-flow' ? activeTabStyle : inactiveTabStyle}`}
           onClick={() => setActiveTab('data-flow')}
         >
           Data Flow
         </button>
         <button
-          className={`px-4 py-2 ${activeTab === 'notes' ? 'border-b-2 border-blue-500' : ''}`}
+          className={`${tabStyle} ${activeTab === 'notes' ? activeTabStyle : inactiveTabStyle}`}
           onClick={() => setActiveTab('notes')}
         >
           Notes
         </button>
       </div>
-      <div className="pt-4">
+      <div className="pt-4 text-sm">
         {activeTab === 'description' && (
-          <div>
-            <h3 className="text-lg font-bold">{selectedStep.title}</h3>
-            <p className="text-sm text-gray-400">Actor: {selectedStep.actor}</p>
-            <p className="mt-4">{selectedStep.description}</p>
+          <div className="space-y-3">
+            <h3 className="text-lg font-bold text-gray-200">{selectedStep.title}</h3>
+            <p className="text-xs text-gray-400">Actor: <span className="font-semibold text-blue-400">{selectedStep.actor}</span></p>
+            <p className="text-gray-300 leading-relaxed">{selectedStep.description}</p>
           </div>
         )}
         {activeTab === 'data-flow' && (
-          <div>
-            <h4 className="font-bold">In</h4>
-            <pre className="bg-gray-900 p-2 rounded mt-2">
-              <code>{selectedStep.dataFlow.in.join('\n')}</code>
-            </pre>
-            <h4 className="font-bold mt-4">Out</h4>
-            <pre className="bg-gray-900 p-2 rounded mt-2">
-              <code>{selectedStep.dataFlow.out.join('\n')}</code>
-            </pre>
-            <p className="text-sm text-gray-500 mt-4">
+          <div className="space-y-4">
+            <div>
+                <h4 className="font-bold text-gray-300">In (from context)</h4>
+                <pre className="bg-[#1e1e1e] p-3 rounded mt-2 text-green-400 text-xs">
+                  <code>{selectedStep.dataFlow.in.length > 0 ? selectedStep.dataFlow.in.join('\n') : 'N/A'}</code>
+                </pre>
+            </div>
+            <div>
+                <h4 className="font-bold text-gray-300">Out (to context)</h4>
+                <pre className="bg-[#1e1e1e] p-3 rounded mt-2 text-orange-400 text-xs">
+                  <code>{selectedStep.dataFlow.out.join('\n')}</code>
+                </pre>
+            </div>
+            <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-[#37373d]">
               * Note: `request/response/assert` details are implemented in the code but not displayed here.
             </p>
           </div>
@@ -55,8 +63,8 @@ const StepPanel: React.FC = () => {
         {activeTab === 'notes' && (
           <div>
             <textarea
-              className="w-full h-40 bg-gray-900 text-white p-2 rounded"
-              placeholder="Developer notes..."
+              className="w-full h-60 bg-[#1e1e1e] text-gray-300 p-3 rounded text-sm border border-[#37373d] focus:outline-none focus:ring-1 focus:ring-[#0e639c]"
+              placeholder="Developer notes for this step..."
             ></textarea>
           </div>
         )}
