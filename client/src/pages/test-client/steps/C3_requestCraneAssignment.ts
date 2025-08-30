@@ -1,5 +1,6 @@
 import { apiAdapter } from '../transport/apiAdapter';
 import { StepInput, runStep } from './types';
+import { AxiosError } from 'axios';
 
 type RequestCraneInput = StepInput & {
   siteId: string;
@@ -32,13 +33,24 @@ export async function requestCraneAssignment(input: RequestCraneInput): Promise<
         end_date: endDate.toISOString().split('T')[0],
     };
 
-    const response = await apiAdapter.post('SAFETY_MANAGER', '/assignments/crane', assignCraneData);
-    const assignmentId = response.data.assignment_id;
+    try {
+        const response = await apiAdapter.post('SAFETY_MANAGER', '/assignments/crane', assignCraneData);
+        const assignmentId = response.data.assignment_id;
 
-    if (!assignmentId) {
-        throw new Error('Failed to get assignmentId from response');
+        if (!assignmentId) {
+            throw new Error('Failed to get assignmentId from response');
+        }
+        return { assignmentId };
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response?.status === 409) {
+            const detail = axiosError.response.data as { detail: { assignment_id: string } };
+            const assignmentId = detail.detail.assignment_id;
+            if (assignmentId) {
+                return { assignmentId };
+            }
+        }
+        throw error; // Re-throw any other error
     }
-
-    return { assignmentId };
   });
 }

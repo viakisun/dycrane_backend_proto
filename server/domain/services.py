@@ -221,7 +221,10 @@ class AssignmentService:
         if overlapping_assignment:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Crane {assignment_in.crane_id} is already assigned during the requested period.",
+                detail={
+                    "message": f"Crane {assignment_in.crane_id} is already assigned during the requested period.",
+                    "assignment_id": overlapping_assignment.id,
+                },
             )
 
         assignment_data = SiteCraneAssignmentCreate(
