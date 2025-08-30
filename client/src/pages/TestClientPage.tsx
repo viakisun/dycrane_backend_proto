@@ -8,30 +8,30 @@ const TestClientPage: React.FC = () => {
   const { initialize, reset } = useWorkflowStore(state => state.actions);
 
   useEffect(() => {
-    // Initialize the context with user data on first load
     initialize();
   }, [initialize]);
 
   const handleReset = () => {
-    // This will now call the server to reset the DB and then reset the client state
     reset();
   };
 
   return (
-    <div className="min-h-screen p-4">
-      <header className="mb-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-300">Test Client – Developer Guide</h1>
+    <div className="min-h-screen p-4 md:p-6 lg:p-8">
+      <header className="mb-6 flex justify-between items-center">
+        <div>
+            <h1 className="text-2xl font-bold text-gray-800">Developer Guide</h1>
+            <p className="text-sm text-gray-500">Interactive E2E Workflow Test Client</p>
+        </div>
         <div className="flex items-center space-x-4">
             <button
                 onClick={handleReset}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors duration-150"
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition-colors duration-150"
             >
                 Reset Workflow Data
             </button>
-            <p className="text-xs text-gray-500">Commit: abc1234 | Version: 0.1.0</p>
         </div>
       </header>
-      <main className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <main className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-3">
           <WorkflowRail />
         </div>
