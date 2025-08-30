@@ -20,6 +20,18 @@ def create_site(payload: SiteCreate, db: Session = Depends(get_db)):
     return site_service.create_site(db=db, site_in=payload)
 
 
+from typing import Optional
+
+@router.get("/", response_model=List[SiteOut])
+def list_sites(db: Session = Depends(get_db), mine: Optional[bool] = None, user_id: Optional[str] = None):
+    """
+    List all construction sites.
+    If 'mine' is true, returns only sites relevant to the user_id.
+    NOTE: In a real app, user_id would come from an auth dependency.
+    """
+    return site_service.list_sites(db=db, mine=mine, user_id=user_id)
+
+
 @router.post("/{site_id}/approve", response_model=SiteOut)
 def approve_site(site_id: str, payload: SiteApprove, db: Session = Depends(get_db)):
     """

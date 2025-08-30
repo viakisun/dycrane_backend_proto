@@ -8,10 +8,13 @@ SET search_path TO ops, public;
 
 -- Orgs
 INSERT INTO orgs (id, name, type) VALUES
-(uuid_generate_v4(), 'OwnerOrg-A', 'OWNER'),
-(uuid_generate_v4(), 'OwnerOrg-B', 'OWNER'),
-(uuid_generate_v4(), 'Manufacturer-VIA', 'MANUFACTURER')
-ON CONFLICT DO NOTHING;
+('org-owner-01', 'Total Cranes Inc.', 'OWNER'),
+('org-owner-02', 'Apex Lifting Solutions', 'OWNER'),
+('org-owner-03', 'Summit Hoisting', 'OWNER'),
+('org-owner-04', 'Bedrock Heavy Machinery', 'OWNER'),
+('org-owner-05', 'SkyHigh Rentals', 'OWNER'),
+('org-mfg-01', 'Global Crane Manufacturing', 'MANUFACTURER')
+ON CONFLICT (id) DO NOTHING;
 
 
 -- Users
@@ -19,14 +22,20 @@ ON CONFLICT DO NOTHING;
 -- Hashed with SHA256: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
 INSERT INTO users (id, email, name, role, is_active, hashed_password)
 VALUES
-('user-safety-manager-01', 'safety1@via.local', 'Safety One', 'SAFETY_MANAGER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
-('user-safety-manager-02', 'safety2@via.local', 'Safety Two', 'SAFETY_MANAGER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
-('user-manufacturer-01', 'mfr@via.local', 'Mfr Admin', 'MANUFACTURER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
-('user-owner-01', 'owner@via.local', 'Owner Boss', 'OWNER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
-('user-driver-01', 'driver1@via.local', 'Driver A', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
-('user-driver-02', 'driver2@via.local', 'Driver B', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
-('user-driver-03', 'driver3@via.local', 'Driver C', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8')
-ON CONFLICT (email) DO NOTHING;
+('user-safety-manager-01', 'safety1@dy.local', 'Safety Manager One', 'SAFETY_MANAGER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-safety-manager-02', 'safety2@dy.local', 'Safety Manager Two', 'SAFETY_MANAGER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-manufacturer-01', 'mfr1@dy.local', 'Manufacturer Admin', 'MANUFACTURER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-owner-01', 'owner1@dy.local', 'Owner One (Total)', 'OWNER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-owner-02', 'owner2@dy.local', 'Owner Two (Apex)', 'OWNER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-owner-03', 'owner3@dy.local', 'Owner Three (Summit)', 'OWNER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-owner-04', 'owner4@dy.local', 'Owner Four (Bedrock)', 'OWNER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-owner-05', 'owner5@dy.local', 'Owner Five (SkyHigh)', 'OWNER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-driver-01', 'driver1@dy.local', 'Driver A', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-driver-02', 'driver2@dy.local', 'Driver B', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-driver-03', 'driver3@dy.local', 'Driver C', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-driver-04', 'driver4@dy.local', 'Driver D', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'),
+('user-driver-05', 'driver5@dy.local', 'Driver E', 'DRIVER', TRUE, '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8')
+ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name;
 
 
 -- Map manufacturer and owner user to their orgs

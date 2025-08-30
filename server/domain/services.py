@@ -99,16 +99,32 @@ class SiteService:
         logger.info(f"Site approved successfully: {site.id} - {site.name}")
         return site
 
+    def list_sites(self, db: Session, *, mine: Optional[bool], user_id: Optional[str]) -> List[Site]:
+        """
+        Lists construction sites. If 'mine' is True, filters for sites
+        relevant to the given user_id.
+        """
+        if mine and not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="user_id is required when 'mine' is true",
+            )
+
+        logger.info(f"Listing sites with mine={mine} for user_id={user_id}")
+        return site_repo.get_multi_for_user(db, user_id=user_id if mine else None)
+
+
+from server.domain.schemas import UserRole, SiteCreate, SiteStatus, SiteUpdate, CraneCreate, CraneUpdate, OrgType, SiteCraneAssignmentCreate, DriverAssignmentCreate, DocumentRequestCreate, DocumentItemCreate, DocItemStatus, DocumentItemUpdate, AttendanceCreate, CraneStatus
 
 class CraneService:
-    def list_owner_cranes(self, db: Session, *, owner_org_id: str) -> List[Crane]:
+    def list_owner_cranes(self, db: Session, *, owner_org_id: str, status: Optional[CraneStatus] = None) -> List[Crane]:
         """
-        List all cranes owned by a specific organization.
+        List all cranes owned by a specific organization, with optional status filtering.
         """
-        logger.info(f"Listing cranes for organization: {owner_org_id}")
+        logger.info(f"Listing cranes for organization: {owner_org_id} with status filter: {status}")
         # This is a simplified example. In a real scenario, you would also
         # validate the organization exists and is of the correct type.
-        cranes = crane_repo.get_by_owner(db, owner_org_id=owner_org_id)
+        cranes = crane_repo.get_by_owner(db, owner_org_id=owner_org_id, status=status)
         logger.info(f"Found {len(cranes)} cranes for organization: {owner_org_id}")
         return cranes
 
