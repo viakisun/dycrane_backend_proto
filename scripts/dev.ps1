@@ -82,7 +82,8 @@ function Initialize-Database {
         psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/init_db.sql"
         psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/init_view.sql"
         psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/truncate.sql"
-        psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/seed.sql"
+        Write-SubStep "Running procedural seeder..."
+        python "$ProjectRoot/scripts/procedural_seed.py"
     } else {
         Write-SubStep "psql not found, falling back to Python runner."
         python "$ProjectRoot/scripts/db_runner.py" "full"
