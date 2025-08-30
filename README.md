@@ -11,6 +11,7 @@ This project is documented across several files to provide clear, targeted infor
 -   **[README.md](README.md)** (You are here): High-level overview and project entry point.
 -   **[CONTRIBUTING.md](CONTRIBUTING.md)**: The essential guide for developers. Contains detailed instructions on setting up your local environment, running the application, and contributing to the project.
 -   **[TEST_CLIENT_GUIDE.md](TEST_CLIENT_GUIDE.md)**: A detailed guide to the interactive `/test-client`, explaining each step of the business workflow (A1-F2) and how to use the UI.
+-   **[WORKFLOW_DIAGRAM.md](WORKFLOW_DIAGRAM.md)**: A sequence diagram that visually represents the entire end-to-end workflow.
 -   **[openapi.yaml](openapi.yaml)**: The full OpenAPI (Swagger) specification for the backend API.
 -   **[RELEASES.md](RELEASES.md)**: Contains release notes and a summary of changes for each version.
 
