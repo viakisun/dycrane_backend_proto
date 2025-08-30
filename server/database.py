@@ -111,6 +111,22 @@ class DatabaseManager:
             logger.error(f"Database health check failed: {e}")
             return False
 
+    def reset_database(self) -> None:
+        """
+        Reset the database by truncating all tables.
+        This is intended for testing and development environments.
+        """
+        try:
+            with open("sql/03_reset.sql") as f:
+                reset_sql = f.read()
+            with self.get_session() as session:
+                session.execute(text(reset_sql))
+                session.commit()
+            logger.info("Database has been reset successfully.")
+        except Exception as e:
+            logger.error(f"Failed to reset database: {e}")
+            raise
+
     def close(self) -> None:
         """Close database connections and clean up resources."""
         if self.engine:

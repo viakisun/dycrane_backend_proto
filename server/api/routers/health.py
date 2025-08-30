@@ -32,3 +32,17 @@ def health_check(db: Session = Depends(get_db)):
         logger.debug("Health check passed")
 
     return response
+
+
+@router.post("/reset", status_code=204)
+def reset_database_for_testing():
+    """
+    Reset the database to a clean state. FOR DEVELOPMENT/TESTING ONLY.
+    """
+    logger.warning("Received request to reset the database")
+    try:
+        db_manager.reset_database()
+        return {"status": "Database reset successfully"}
+    except Exception as e:
+        logger.error(f"An error occurred during database reset: {e}")
+        raise
