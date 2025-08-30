@@ -23,7 +23,6 @@ export type WorkflowContext = {
   [key: string]: any;
 };
 
-// Hardcoded user data, similar to E2E tests
 const TEST_USERS = {
     SAFETY_MANAGER: { id: "user-safety-manager-01", token: "dummy-token-sm", orgId: "org-safety-01" },
     MANUFACTURER: { id: "user-manufacturer-01", token: "dummy-token-mfr", orgId: "org-manufacturer-01" },
@@ -95,7 +94,9 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       try {
         const stepFn = stepFunctions[stepCode];
         if (stepFn) {
-          const result = await stepFn({ context: get().context, actions });
+          // Pass the whole context as top-level props to the step function
+          const stepInput = { ...context, context, actions };
+          const result = await stepFn(stepInput);
           if (result) {
             const newContext = { ...get().context, ...result };
             set({ context: newContext });
@@ -129,8 +130,8 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     },
     setSelectedStep: (stepCode: string) => set({ selectedStep: stepCode }),
     reset: () => {
-        set(initialState);
-        get().actions.initialize();
+        const currentContext = get().context;
+        set({...initialState, context: { users: currentContext.users }});
     }
   },
 }));
