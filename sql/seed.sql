@@ -32,10 +32,10 @@ ON CONFLICT (email) DO NOTHING;
 -- Map manufacturer and owner user to their orgs
 DO $$
 DECLARE
-v_mfr_org uuid;
-v_ownerA uuid;
-v_mfr_user uuid;
-v_owner_user uuid;
+v_mfr_org TEXT;
+v_ownerA TEXT;
+v_mfr_user TEXT;
+v_owner_user TEXT;
 BEGIN
 SELECT id INTO v_mfr_org FROM orgs WHERE name='Manufacturer-VIA' LIMIT 1;
 SELECT id INTO v_ownerA FROM orgs WHERE name='OwnerOrg-A' LIMIT 1;
@@ -59,8 +59,8 @@ END$$;
 -- Cranes for OwnerOrg-A and OwnerOrg-B
 DO $$
 DECLARE
-v_ownerA uuid;
-v_ownerB uuid;
+v_ownerA TEXT;
+v_ownerB TEXT;
 BEGIN
 SELECT id INTO v_ownerA FROM orgs WHERE name='OwnerOrg-A' LIMIT 1;
 SELECT id INTO v_ownerB FROM orgs WHERE name='OwnerOrg-B' LIMIT 1;
