@@ -1,32 +1,36 @@
 import { apiAdapter } from '../transport/apiAdapter';
-import { StepInput, runStep } from './types';
+import { StepInput } from './types';
 
 type SubmitDocumentInput = StepInput & {
   docRequestId: string;
 };
 
 type SubmitDocumentOutput = {
-    docItemId: string;
+  docItemId: string;
 };
 
-export async function submitDocument(input: SubmitDocumentInput): Promise<SubmitDocumentOutput> {
-  return runStep('E2.submitDocument', async () => {
-    const { docRequestId } = input;
-    if (!docRequestId) throw new Error('docRequestId is required');
+export async function submitDocument(
+  input: SubmitDocumentInput
+): Promise<SubmitDocumentOutput> {
+  const { docRequestId } = input;
 
-    const docSubmitData = {
-        request_id: docRequestId,
-        doc_type: "Safety Certificate",
-        file_url: "https://example.com/safety-cert.pdf"
-    };
+  const docSubmitData = {
+    request_id: docRequestId,
+    doc_type: 'Safety Certificate',
+    file_url: 'https://example.com/safety-cert.pdf',
+  };
 
-    const response = await apiAdapter.post('DRIVER', '/docs/items/submit', docSubmitData);
-    const docItemId = response.data.item_id;
+  const response = await apiAdapter.post(
+    'DRIVER',
+    '/docs/items/submit',
+    docSubmitData
+  );
 
-    if (!docItemId) {
-        throw new Error('Failed to get docItemId from response');
-    }
+  const docItemId = response.data.item_id;
 
-    return { docItemId };
-  });
+  if (!docItemId) {
+    throw new Error('Failed to get docItemId from response');
+  }
+
+  return { docItemId };
 }

@@ -1,26 +1,24 @@
 import { apiAdapter } from '../transport/apiAdapter';
-import { StepInput, runStep } from './types';
+import { StepInput } from './types';
 
-type ListCranesOutput = {
+type ListOwnerCranesOutput = {
   craneId: string;
 };
 
-export async function listOwnerCranes(input: StepInput): Promise<ListCranesOutput> {
-  return runStep('C1.listOwnerCranes', async () => {
-    const { context } = input;
-    const owner = context.users?.OWNER;
+export async function listOwnerCranes(input: StepInput): Promise<ListOwnerCranesOutput> {
+  const { context } = input;
+  const owner = context.users?.OWNER;
 
-    if (!owner?.orgId) {
-      throw new Error('Owner or owner organization ID not found in context');
-    }
+  if (!owner) {
+    throw new Error('Owner not found in context');
+  }
 
-    const response = await apiAdapter.get('OWNER', `/owners/${owner.orgId}/cranes`);
-    const craneId = response.data[0]?.id;
+  const response = await apiAdapter.get('OWNER', `/owners/${owner.orgId}/cranes`);
+  const cranes = response.data;
 
-    if (!craneId) {
-      throw new Error('No available cranes found for owner');
-    }
+  if (!cranes || cranes.length === 0) {
+    throw new Error('No cranes found for owner');
+  }
 
-    return { craneId };
-  });
+  return { craneId: cranes[0].id };
 }
