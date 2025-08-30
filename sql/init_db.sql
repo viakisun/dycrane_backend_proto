@@ -130,10 +130,28 @@ CREATE TABLE ops.sites (
 );
 
 -- Cranes owned by organizations
+-- Crane models with detailed specifications
+CREATE TABLE ops.crane_models (
+    id TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
+    model_name TEXT NOT NULL UNIQUE,
+    max_lifting_capacity_ton_m INTEGER,
+    max_working_height_m NUMERIC(5, 2),
+    max_working_radius_m NUMERIC(5, 2),
+    iver_torque_phi_mm TEXT,
+    boom_sections INTEGER,
+    tele_speed_m_sec TEXT,
+    boom_angle_speed_deg_sec TEXT,
+    lifting_load_distance_kg_m JSONB,
+    optional_specs TEXT[],
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Cranes owned by organizations (instances of models)
 CREATE TABLE ops.cranes (
   id            TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
   owner_org_id  TEXT NOT NULL REFERENCES ops.orgs(id) ON DELETE RESTRICT,
-  model_name    TEXT NOT NULL,
+  model_id      TEXT NOT NULL REFERENCES ops.crane_models(id) ON DELETE RESTRICT,
   serial_no     TEXT UNIQUE,
   status        ops.crane_status NOT NULL DEFAULT 'NORMAL',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
