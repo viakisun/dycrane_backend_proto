@@ -33,19 +33,16 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onRunWorkflow }) => 
     };
 
     return (
-        <div className="text-center">
+        <div className="text-center p-4">
             <button
                 onClick={handleRun}
                 disabled={isRunning}
                 className={cn(
-                    "px-8 py-4 text-lg font-bold uppercase tracking-widest text-white transition-all duration-300 rounded-lg",
-                    "bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:cursor-not-allowed",
-                    "shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:shadow-cyan-500/40",
-                    "transform hover:-translate-y-1",
-                    { "animate-pulse": !isRunning }
+                    "px-6 py-3 text-base font-bold uppercase tracking-wider text-white transition-colors duration-200 rounded-md",
+                    "bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed"
                 )}
             >
-                {isRunning ? 'Executing Workflow...' : 'Initiate Full Workflow'}
+                {isRunning ? 'Executing...' : 'Run Full Workflow'}
             </button>
         </div>
     );

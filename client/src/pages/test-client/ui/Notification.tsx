@@ -15,9 +15,9 @@ export const Notification: React.FC = () => {
           className="fixed top-20 right-4 z-50 cursor-pointer"
           onClick={() => actions.setError(null)}
         >
-          <div className="bg-red-900/50 backdrop-blur-sm border border-red-500 text-red-300 px-6 py-4 rounded-lg shadow-neon-magenta">
-            <p className="font-bold uppercase">System Alert</p>
-            <p>{error}</p>
+          <div className="bg-red-800 border border-red-600 text-white px-4 py-3 rounded-lg shadow-lg">
+            <p className="font-bold">System Alert</p>
+            <p className="text-sm">{error}</p>
           </div>
         </motion.div>
       )}
