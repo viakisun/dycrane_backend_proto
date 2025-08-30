@@ -7,14 +7,12 @@ const RETRY_DELAY = 1000; // 1s
 
 type Actor = keyof NonNullable<WorkflowContext['users']> | 'SYSTEM';
 
-// A wrapper to get the current state from the Zustand store outside of a React component
-const { getState } = useWorkflowStore;
-
 async function request<T>(
   actor: Actor,
   config: AxiosRequestConfig
 ): Promise<AxiosResponse<T>> {
-  const { context, actions } = getState();
+  // Call getState() inside the function to avoid circular dependency issues
+  const { context, actions } = useWorkflowStore.getState();
 
   let headers = { ...config.headers };
 
