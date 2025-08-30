@@ -4,7 +4,6 @@ import { createSite } from '../steps/B1_createSite';
 import { approveSite } from '../steps/B2_approveSite';
 import { listOwnerCranes } from '../steps/C1_listOwnerCranes';
 import { requestCraneAssignment } from '../steps/C3_requestCraneAssignment';
-import { approveRequest } from '../steps/C5_approveRequest';
 import { assignDriver } from '../steps/D1_assignDriver';
 import { recordAttendance } from '../steps/D2_recordAttendance';
 import { requestDocument } from '../steps/E1_requestDocument';
@@ -54,7 +53,7 @@ const stepFunctions: { [key: string]: (input: any) => Promise<any> } = {
   B2: approveSite,
   C1: listOwnerCranes,
   C3: requestCraneAssignment,
-  C5: approveRequest,
+  // C5 is removed as it was an incorrect fix
   D1: assignDriver,
   D2: recordAttendance,
   E1: requestDocument,
@@ -91,7 +90,6 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         try {
             await apiAdapter.post('SYSTEM', '/health/reset-transactional');
             actions.addLog({ actor: 'SYSTEM', stepCode: 'RESET', summary: 'Transactional data reset successfully.' });
-            // Reset client state to initial, preserving users
             set(state => ({
                 ...initialState,
                 context: { users: state.context.users },
