@@ -206,6 +206,73 @@ class AttendanceService:
         attendance_data = AttendanceCreate(**attendance_in.model_dump())
         return attendance_repo.create(db, obj_in=attendance_data)
 
+from sqlalchemy import func, case
+from server.domain.models import Org, Request, UserOrg
+from server.domain.schemas import OwnerStatsOut, RequestCreate, RequestUpdate, RequestStatus, RequestType
+
+class RequestService:
+    def create_request(self, db: Session, request_in: RequestCreate) -> Request:
+        requester = user_repo.get(db, id=request_in.requester_id)
+        if not requester:
+            raise ValueError("Requester not found")
+        new_request = Request(**request_in.model_dump(), status=RequestStatus.PENDING)
+        db.add(new_request)
+        db.commit()
+        db.refresh(new_request)
+        return new_request
+
+    def respond_to_request(self, db: Session, request_id: str, response_in: RequestUpdate) -> Request:
+        request = db.query(Request).filter(Request.id == request_id).first()
+        if not request:
+            raise ValueError("Request not found")
+        if request.status != RequestStatus.PENDING:
+            raise ValueError(f"Request {request_id} is not in PENDING state")
+        approver = user_repo.get(db, id=response_in.approver_id)
+        if not approver or approver.role != UserRole.OWNER:
+            raise ValueError("Invalid approver or insufficient permissions")
+
+        request.status = response_in.status
+        request.approver_id = response_in.approver_id
+        request.notes = response_in.notes
+        request.responded_at = func.now()
+        db.commit()
+        db.refresh(request)
+        return request
+
+class OwnerService:
+    def get_owners_with_stats(self, db: Session) -> List[OwnerStatsOut]:
+        results = (
+            db.query(
+                Org.id,
+                Org.name,
+                func.count(Crane.id).label("total_cranes"),
+                func.count(case((Crane.status == CraneStatus.NORMAL, Crane.id))).label("available_cranes"),
+            )
+            .outerjoin(Crane, Org.id == Crane.owner_org_id)
+            .filter(Org.type == OrgType.OWNER)
+            .group_by(Org.id, Org.name)
+            .order_by(Org.name)
+            .all()
+        )
+        return [OwnerStatsOut.model_validate(row) for row in results]
+
+    def get_my_requests(self, db: Session, *, user_id: str, type: Optional[RequestType] = None, status: Optional[RequestStatus] = None) -> List[Request]:
+        user_org = db.query(UserOrg).filter(UserOrg.user_id == user_id).first()
+        if not user_org:
+            return []
+        owner_org_id = user_org.org_id
+        query = (
+            db.query(Request)
+            .join(Crane, Request.target_entity_id == Crane.id)
+            .filter(Crane.owner_org_id == owner_org_id)
+        )
+        if type:
+            query = query.filter(Request.type == type)
+        if status:
+            query = query.filter(Request.status == status)
+        return query.order_by(Request.requested_at.desc()).all()
+
+
 # Instantiate services
 user_service = UserService()
 site_service = SiteService(user_service=user_service)
@@ -213,3 +280,5 @@ crane_service = CraneService()
 assignment_service = AssignmentService(user_service=user_service)
 document_service = DocumentService(user_service=user_service)
 attendance_service = AttendanceService()
+request_service = RequestService()
+owner_service = OwnerService()
