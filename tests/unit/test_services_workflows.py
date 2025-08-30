@@ -2,20 +2,16 @@ import pytest
 from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
 
-from server.domain.services import RequestService, user_repo
+from server.domain.services import request_service, owner_service, crane_model_service, user_repo
 from server.domain.schemas import RequestCreate, RequestUpdate, RequestType, RequestStatus, UserRole
-from server.domain.models import Request, User
+from server.domain.models import Request, User, Org, Crane, UserOrg, CraneModel
 
 @pytest.fixture
 def db_session_mock():
     return MagicMock(spec=Session)
 
-@pytest.fixture
-def request_service():
-    return RequestService()
-
 class TestRequestService:
-    def test_create_request_success(self, request_service, db_session_mock):
+    def test_create_request_success(self, db_session_mock):
         # Arrange
         requester = User(id="user-sm-1", role=UserRole.SAFETY_MANAGER)
         request_in = RequestCreate(
@@ -38,7 +34,7 @@ class TestRequestService:
                 db_session_mock.commit.assert_called_once()
                 db_session_mock.refresh.assert_called_once()
 
-    def test_respond_to_request_approve_success(self, request_service, db_session_mock):
+    def test_respond_to_request_approve_success(self, db_session_mock):
         # Arrange
         pending_request = Request(id="req-1", status=RequestStatus.PENDING)
         approver = User(id="user-owner-1", role=UserRole.OWNER)
@@ -56,15 +52,8 @@ class TestRequestService:
                 db_session_mock.commit.assert_called_once()
                 db_session_mock.refresh.assert_called_once()
 
-from server.domain.services import OwnerService
-from server.domain.models import Org, Crane, UserOrg
-
-@pytest.fixture
-def owner_service():
-    return OwnerService()
-
 class TestOwnerService:
-    def test_get_owners_with_stats(self, owner_service, db_session_mock):
+    def test_get_owners_with_stats(self, db_session_mock):
         # Arrange
         mock_stats = [
             MagicMock(id='org-1', name='Owner A', total_cranes=10, available_cranes=5),
@@ -80,7 +69,7 @@ class TestOwnerService:
         assert results[0].name == 'Owner A'
         assert results[0].available_cranes == 5
 
-    def test_get_my_requests(self, owner_service, db_session_mock):
+    def test_get_my_requests(self, db_session_mock):
         # Arrange
         user_id = 'user-owner-1'
         owner_org_id = 'org-1'
@@ -96,3 +85,15 @@ class TestOwnerService:
         # Assert
         assert len(results) == 2
         assert results[0].id == 'req-1'
+
+class TestCraneModelService:
+    def test_get_models(self, db_session_mock):
+        # Arrange
+        mock_models = [CraneModel(id='model-1', model_name='SS1926')]
+        with patch('server.domain.repositories.crane_model_repo.get_multi', return_value=mock_models):
+            # Act
+            results = crane_model_service.get_models(db_session_mock)
+
+            # Assert
+            assert len(results) == 1
+            assert results[0].model_name == 'SS1926'
