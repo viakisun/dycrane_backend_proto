@@ -9,7 +9,6 @@ import { recordAttendance } from '../steps/D2_recordAttendance';
 import { requestDocument } from '../steps/E1_requestDocument';
 import { submitDocument } from '../steps/E2_submitDocument';
 import { reviewDocument } from '../steps/E3_reviewDocument';
-import { apiAdapter } from '../transport/apiAdapter';
 
 export type Log = {
   time: string;
@@ -22,6 +21,14 @@ export type StepStatus = 'idle' | 'in-progress' | 'done' | 'error';
 
 export type WorkflowContext = {
   [key: string]: any;
+};
+
+// Hardcoded user data, similar to E2E tests
+const TEST_USERS = {
+    SAFETY_MANAGER: { id: "user-safety-manager-01", token: "dummy-token-sm", orgId: "org-safety-01" },
+    MANUFACTURER: { id: "user-manufacturer-01", token: "dummy-token-mfr", orgId: "org-manufacturer-01" },
+    OWNER: { id: "user-owner-01", token: "dummy-token-own", orgId: "org-owner-01" },
+    DRIVER: { id: "user-driver-01", token: "dummy-token-drv", orgId: "org-owner-01" },
 };
 
 type WorkflowState = {
@@ -69,29 +76,13 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         logs: [...state.logs, { ...log, time: new Date().toLocaleTimeString() }],
     })),
     initialize: async () => {
-        try {
-            set(state => ({ ...state, stepStatus: { ...state.stepStatus, A1: 'in-progress' } }));
-            const { data: users } = await apiAdapter.get('SYSTEM', '/users/by-role');
-            const context = { users };
-            set(state => ({
-                context,
-                logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode: 'A1', summary: 'User sessions prepared.' }],
-                stepStatus: { ...state.stepStatus, A1: 'done' }
-            }));
+        const { actions } = get();
+        actions.addLog({ actor: 'SYSTEM', stepCode: 'A1', summary: 'Preparing user sessions (using test data)...' });
+        set({ context: { users: TEST_USERS } });
+        set(state => ({ stepStatus: { ...state.stepStatus, A1: 'done' } }));
 
-            set(state => ({ ...state, stepStatus: { ...state.stepStatus, A2: 'in-progress' } }));
-            set(state => ({
-                logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode: 'A2', summary: 'Environment check passed.' }],
-                stepStatus: { ...state.stepStatus, A2: 'done' }
-            }));
-        } catch (error: any) {
-            const errorMessage = `Initialization failed: ${error.message}`;
-            set(state => ({
-                logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode: 'A1', summary: errorMessage }],
-                stepStatus: { ...state.stepStatus, A1: 'error' },
-                error: errorMessage
-            }));
-        }
+        actions.addLog({ actor: 'SYSTEM', stepCode: 'A2', summary: 'Environment check passed (simulated).' });
+        set(state => ({ stepStatus: { ...state.stepStatus, A2: 'done' } }));
     },
     runStep: async (stepCode: string) => {
       const { context, actions } = get();
@@ -104,9 +95,11 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       try {
         const stepFn = stepFunctions[stepCode];
         if (stepFn) {
-          const result = await stepFn({ context, actions });
-          const newContext = { ...get().context, ...result };
-          set({ context: newContext });
+          const result = await stepFn({ context: get().context, actions });
+          if (result) {
+            const newContext = { ...get().context, ...result };
+            set({ context: newContext });
+          }
         }
 
         actions.addLog({ actor: 'SYSTEM', stepCode, summary: 'Step completed successfully.' });
@@ -135,6 +128,9 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       set({ isRunning: false });
     },
     setSelectedStep: (stepCode: string) => set({ selectedStep: stepCode }),
-    reset: () => set(initialState),
+    reset: () => {
+        set(initialState);
+        get().actions.initialize();
+    }
   },
 }));
