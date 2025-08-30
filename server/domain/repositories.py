@@ -148,8 +148,17 @@ from server.domain.models import Site, User
 from server.domain.schemas import SiteCreate, SiteUpdate, UserCreate, UserUpdate
 
 class SiteRepository(BaseRepository[Site, SiteCreate, SiteUpdate]):
-    # You can add site-specific methods here if needed
-    pass
+    def get_multi_for_user(self, db: Session, *, user_id: Optional[str] = None) -> List[Site]:
+        """
+        Retrieves multiple sites, optionally filtered by a user involved.
+        A simple implementation might just check the 'requested_by_id'.
+        A more complex one would check assignments for owners/drivers.
+        """
+        query = db.query(self.model)
+        if user_id:
+            # For now, we only filter by the user who requested the site.
+            query = query.filter(self.model.requested_by_id == user_id)
+        return query.all()
 
 import hashlib
 
@@ -169,9 +178,14 @@ class UserRepository(BaseRepository[User, "UserCreate", "UserUpdate"]):
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
         return db.query(User).filter(User.email == email).first()
 
+from server.domain.schemas import CraneStatus
+
 class CraneRepository(BaseRepository[Crane, "CraneCreate", "CraneUpdate"]):
-    def get_by_owner(self, db: Session, *, owner_org_id: str) -> List[Crane]:
-        return db.query(Crane).filter(Crane.owner_org_id == owner_org_id).all()
+    def get_by_owner(self, db: Session, *, owner_org_id: str, status: Optional[CraneStatus] = None) -> List[Crane]:
+        query = db.query(Crane).filter(Crane.owner_org_id == owner_org_id)
+        if status:
+            query = query.filter(Crane.status == status)
+        return query.all()
 
 from server.domain.models import SiteCraneAssignment, DriverAssignment
 

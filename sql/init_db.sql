@@ -53,6 +53,16 @@ CREATE TYPE ops.doc_item_status AS ENUM (
   'REJECTED'
 );
 
+CREATE TYPE ops.request_type AS ENUM (
+  'CRANE_DEPLOY'
+);
+
+CREATE TYPE ops.request_status AS ENUM (
+  'PENDING',
+  'APPROVED',
+  'REJECTED'
+);
+
 CREATE TYPE ops.org_type AS ENUM (
   'OWNER',        -- Construction company owning cranes
   'MANUFACTURER'  -- Crane manufacturer providing approval
@@ -203,6 +213,22 @@ CREATE TABLE ops.driver_document_items (
   reviewed_at  TIMESTAMPTZ,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Generic requests table for workflows like crane deployment
+CREATE TABLE ops.requests (
+  id                TEXT PRIMARY KEY DEFAULT uuid_generate_v4()::text,
+  type              ops.request_type NOT NULL,
+  status            ops.request_status NOT NULL DEFAULT 'PENDING',
+  requester_id      TEXT NOT NULL REFERENCES ops.users(id) ON DELETE CASCADE,
+  approver_id       TEXT REFERENCES ops.users(id) ON DELETE SET NULL,
+  target_entity_id  TEXT, -- e.g., crane_id for CRANE_DEPLOY
+  related_entity_id TEXT, -- e.g., site_id for CRANE_DEPLOY
+  notes             TEXT,
+  requested_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  responded_at      TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- =========================================================

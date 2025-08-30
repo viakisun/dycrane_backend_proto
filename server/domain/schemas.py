@@ -49,6 +49,18 @@ class DocItemStatus(str, Enum):
     REJECTED = "REJECTED"
 
 
+class RequestType(str, Enum):
+    """Generic request types."""
+    CRANE_DEPLOY = "CRANE_DEPLOY"
+
+
+class RequestStatus(str, Enum):
+    """Generic request statuses."""
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
+
 class OrgType(str, Enum):
     """Organization type classification."""
     OWNER = "OWNER"              # Construction company owning cranes
@@ -354,3 +366,49 @@ class AttendanceCreate(BaseModel):
 
 class AttendanceUpdate(BaseModel):
     check_out_at: Optional[dt.datetime] = None
+
+
+# ========= REQUEST WORKFLOW SCHEMAS =========
+
+class RequestCreate(BaseModel):
+    """Schema for creating a generic request."""
+    type: RequestType
+    requester_id: str
+    target_entity_id: str
+    related_entity_id: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class RequestUpdate(BaseModel):
+    """Schema for approving or rejecting a request."""
+    status: RequestStatus
+    approver_id: str
+    notes: Optional[str] = None
+
+
+class RequestOut(BaseModel):
+    """Schema for request information in API responses."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    type: RequestType
+    status: RequestStatus
+    requester_id: str
+    approver_id: Optional[str] = None
+    target_entity_id: Optional[str] = None
+    related_entity_id: Optional[str] = None
+    notes: Optional[str] = None
+    requested_at: dt.datetime
+    responded_at: Optional[dt.datetime] = None
+
+
+# ========= OWNER SCHEMAS =========
+
+class OwnerStatsOut(BaseModel):
+    """Schema for an owner organization with crane fleet statistics."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    total_cranes: int
+    available_cranes: int
