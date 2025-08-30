@@ -30,8 +30,8 @@ const CranesListPage: React.FC = () => {
             try {
                 setLoading(true);
                 const endpoint = statusFilter
-                    ? `/api/owners/${ownerId}/cranes?status=${statusFilter}`
-                    : `/api/owners/${ownerId}/cranes`;
+                    ? `/owners/${ownerId}/cranes?status=${statusFilter}`
+                    : `/owners/${ownerId}/cranes`;
                 const response = await apiClient.get(endpoint);
                 setCranes(response.data);
                 setError(null);

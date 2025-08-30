@@ -25,9 +25,8 @@ const RequestsListPage: React.FC = () => {
         const fetchRequests = async () => {
             try {
                 setLoading(true);
-                // const response = await apiClient.get('/api/owners/me/requests?type=CRANE_DEPLOY&status=PENDING');
-                // setRequests(response.data);
-                setRequests(placeholderRequests); // Using placeholder data for now
+                const response = await apiClient.get('/owners/me/requests?type=CRANE_DEPLOY&status=PENDING&user_id=user-owner-01'); // Added user_id for now
+                setRequests(response.data);
                 setError(null);
             } catch (err) {
                 setError('Failed to fetch requests.');
@@ -47,7 +46,7 @@ const RequestsListPage: React.FC = () => {
                 approver_id: 'user-owner-01', // This should be the current user's ID
                 notes: approve ? 'Deployment approved.' : 'Deployment rejected.'
             };
-            await apiClient.post(`/api/requests/${requestId}/respond`, payload);
+            await apiClient.post(`/requests/${requestId}/respond`, payload);
 
             // Refresh list by filtering out the responded request
             setRequests(prev => prev.filter(req => req.id !== requestId));
