@@ -10,6 +10,7 @@ import { recordAttendance } from '../steps/D2_recordAttendance';
 import { requestDocument } from '../steps/E1_requestDocument';
 import { submitDocument } from '../steps/E2_submitDocument';
 import { reviewDocument } from '../steps/E3_reviewDocument';
+import { apiAdapter } from '../transport/apiAdapter';
 
 export type Log = {
   time: string;
@@ -42,7 +43,7 @@ type WorkflowState = {
     runStep: (stepCode: string) => Promise<void>;
     runAllSteps: () => Promise<void>;
     setSelectedStep: (stepCode: string) => void;
-    reset: () => void;
+    reset: () => Promise<void>;
     initialize: () => Promise<void>;
     addLog: (log: Omit<Log, 'time'>) => void;
   };
@@ -67,7 +68,7 @@ const initialState = {
   selectedStep: WORKFLOW_STEPS[0].code,
   error: null,
   isRunning: false,
-  context: {},
+  context: { users: TEST_USERS },
 };
 
 export const useWorkflowStore = create<WorkflowState>((set, get) => ({
@@ -78,12 +79,23 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     })),
     initialize: async () => {
         const { actions } = get();
-        actions.addLog({ actor: 'SYSTEM', stepCode: 'A1', summary: 'Preparing user sessions (using test data)...' });
-        set({ context: { users: TEST_USERS } });
+        actions.addLog({ actor: 'SYSTEM', stepCode: 'A1', summary: 'User context prepared.' });
         set(state => ({ stepStatus: { ...state.stepStatus, A1: 'done' } }));
 
-        actions.addLog({ actor: 'SYSTEM', stepCode: 'A2', summary: 'Environment check passed (simulated).' });
+        actions.addLog({ actor: 'SYSTEM', stepCode: 'A2', summary: 'Environment check passed.' });
         set(state => ({ stepStatus: { ...state.stepStatus, A2: 'done' } }));
+    },
+    reset: async () => {
+        const { actions } = get();
+        actions.addLog({ actor: 'SYSTEM', stepCode: 'RESET', summary: 'Resetting server state...' });
+        try {
+            await apiAdapter.post('SYSTEM', '/health/reset');
+            actions.addLog({ actor: 'SYSTEM', stepCode: 'RESET', summary: 'Server state reset successfully.' });
+            set(initialState);
+            await actions.initialize();
+        } catch (error: any) {
+            actions.addLog({ actor: 'SYSTEM', stepCode: 'RESET', summary: `Error resetting server state: ${error.message}` });
+        }
     },
     runStep: async (stepCode: string) => {
       const { context, actions } = get();
@@ -115,24 +127,18 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       }
     },
     runAllSteps: async () => {
-      set({ isRunning: true, error: null });
-      await get().actions.initialize();
-      if (get().error) {
-          set({ isRunning: false });
-          return;
-      }
-      for (const step of WORKFLOW_STEPS) {
-        if (stepFunctions[step.code]) {
-            await get().actions.runStep(step.code);
-            if (get().error) break;
+        set({ isRunning: true, error: null });
+        for (const step of WORKFLOW_STEPS) {
+            if (get().error) {
+                actions.addLog({ actor: 'SYSTEM', stepCode: 'ABORT', summary: 'Workflow aborted due to error.' });
+                break;
+            }
+            if (stepFunctions[step.code]) {
+                await get().actions.runStep(step.code);
+            }
         }
-      }
-      set({ isRunning: false });
+        set({ isRunning: false });
     },
     setSelectedStep: (stepCode: string) => set({ selectedStep: stepCode }),
-    reset: () => {
-        const currentContext = get().context;
-        set({...initialState, context: { users: currentContext.users }});
-    }
   },
 }));
