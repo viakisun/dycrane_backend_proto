@@ -38,10 +38,12 @@ def test_full_business_workflow(api_client: ApiClient):
     assert approved_site["status"] == "ACTIVE"
 
     # Step 3: List cranes
-    response = api_client.get(f"/api/cranes/owners/{OWNER_ORG_ID}/cranes")
+    response = api_client.get(f"/api/owners/{OWNER_ORG_ID}/cranes")
     cranes = assert_successful_response(response)
     assert isinstance(cranes, list)
     assert len(cranes) > 0
+    assert "model" in cranes[0]
+    assert "model_name" in cranes[0]["model"]
     crane_id = cranes[0]['id']
 
     # Step 4: Assign crane
