@@ -13,9 +13,13 @@ from server.domain.schemas import (
     RequestType,
 )
 from server.domain.services import crane_service, request_service
+from server.api.routers import owners
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+router.include_router(owners.router, prefix="/owners")
 
 
 
