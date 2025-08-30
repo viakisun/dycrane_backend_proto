@@ -15,7 +15,8 @@ from sqlalchemy import (
 from server.database import Base
 from server.domain.schemas import (
     UserRole, SiteStatus, CraneStatus,
-    AssignmentStatus, DocItemStatus, OrgType
+    AssignmentStatus, DocItemStatus, OrgType,
+    RequestType, RequestStatus
 )
 
 
@@ -191,3 +192,24 @@ class DriverDocumentItem(Base, TimestampMixin):
     
     def __repr__(self) -> str:
         return f"<DriverDocumentItem(id={self.id}, doc_type={self.doc_type}, status={self.status})>"
+
+
+class Request(Base, TimestampMixin):
+    """Generic requests for workflows like crane deployment."""
+
+    __tablename__ = "requests"
+    __table_args__ = {"schema": "ops"}
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    type = Column(Enum(RequestType), nullable=False)
+    status = Column(Enum(RequestStatus), default=RequestStatus.PENDING, nullable=False, index=True)
+    requester_id = Column(String, ForeignKey("ops.users.id", ondelete="CASCADE"), nullable=False)
+    approver_id = Column(String, ForeignKey("ops.users.id", ondelete="SET NULL"))
+    target_entity_id = Column(String, index=True)
+    related_entity_id = Column(String, index=True)
+    notes = Column(Text)
+    requested_at = Column(DateTime, default=func.now(), nullable=False)
+    responded_at = Column(DateTime)
+
+    def __repr__(self) -> str:
+        return f"<Request(id={self.id}, type={self.type}, status={self.status})>"
