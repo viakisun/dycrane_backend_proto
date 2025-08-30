@@ -14,7 +14,7 @@ export async function listOwnerCranes(input: StepInput): Promise<ListCranesOutpu
       throw new Error('Owner or owner organization ID not found in context');
     }
 
-    const response = await apiAdapter.get('OWNER', `/owners/${owner.orgId}/cranes`);
+    const response = await apiAdapter.get('OWNER', `/cranes/owners/${owner.orgId}/cranes`);
     const craneId = response.data[0]?.id;
 
     if (!craneId) {
