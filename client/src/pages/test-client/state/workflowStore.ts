@@ -37,6 +37,7 @@ type WorkflowState = {
     setSelectedStep: (stepCode: string) => void;
     reset: () => void;
     initialize: () => Promise<void>;
+    addLog: (log: Omit<Log, 'time'>) => void;
   };
 };
 
@@ -64,23 +65,33 @@ const initialState = {
 export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   ...initialState,
   actions: {
+    addLog: (log) => set((state) => ({
+        logs: [...state.logs, { ...log, time: new Date().toLocaleTimeString() }],
+    })),
     initialize: async () => {
-        // A1 & A2 steps
-        set(state => ({ ...state, stepStatus: { ...state.stepStatus, A1: 'in-progress' } }));
-        const { data: users } = await apiAdapter.get('SYSTEM', '/users/by-role');
-        const context = { users };
-        set(state => ({
-            context,
-            logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode: 'A1', summary: 'User sessions prepared.' }],
-            stepStatus: { ...state.stepStatus, A1: 'done' }
-        }));
+        try {
+            set(state => ({ ...state, stepStatus: { ...state.stepStatus, A1: 'in-progress' } }));
+            const { data: users } = await apiAdapter.get('SYSTEM', '/users/by-role');
+            const context = { users };
+            set(state => ({
+                context,
+                logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode: 'A1', summary: 'User sessions prepared.' }],
+                stepStatus: { ...state.stepStatus, A1: 'done' }
+            }));
 
-        set(state => ({ ...state, stepStatus: { ...state.stepStatus, A2: 'in-progress' } }));
-        // In a real scenario, we would check the environment. Here we just log it.
-        set(state => ({
-            logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode: 'A2', summary: 'Environment check passed.' }],
-            stepStatus: { ...state.stepStatus, A2: 'done' }
-        }));
+            set(state => ({ ...state, stepStatus: { ...state.stepStatus, A2: 'in-progress' } }));
+            set(state => ({
+                logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode: 'A2', summary: 'Environment check passed.' }],
+                stepStatus: { ...state.stepStatus, A2: 'done' }
+            }));
+        } catch (error: any) {
+            const errorMessage = `Initialization failed: ${error.message}`;
+            set(state => ({
+                logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode: 'A1', summary: errorMessage }],
+                stepStatus: { ...state.stepStatus, A1: 'error' },
+                error: errorMessage
+            }));
+        }
     },
     runStep: async (stepCode: string) => {
       const { context, actions } = get();
@@ -88,31 +99,33 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       if (!stepInfo) return;
 
       set(state => ({ stepStatus: { ...state.stepStatus, [stepCode]: 'in-progress' } }));
-      set(state => ({ logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: stepInfo.actor, stepCode, summary: `${stepInfo.title} started.` }] }));
+      actions.addLog({ actor: stepInfo.actor, stepCode, summary: `${stepInfo.title} started.` });
 
       try {
         const stepFn = stepFunctions[stepCode];
         if (stepFn) {
           const result = await stepFn({ context, actions });
-          const newContext = { ...context, ...result };
+          const newContext = { ...get().context, ...result };
           set({ context: newContext });
         }
 
-        set(state => ({
-            logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode, summary: 'Step completed successfully.' }],
-            stepStatus: { ...state.stepStatus, [stepCode]: 'done' }
-        }));
+        actions.addLog({ actor: 'SYSTEM', stepCode, summary: 'Step completed successfully.' });
+        set(state => ({ stepStatus: { ...state.stepStatus, [stepCode]: 'done' } }));
       } catch (error: any) {
+        actions.addLog({ actor: 'SYSTEM', stepCode, summary: `Error: ${error.message}` });
         set(state => ({
-            logs: [...state.logs, { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode, summary: `Error: ${error.message}` }],
             stepStatus: { ...state.stepStatus, [stepCode]: 'error' },
             error: error.message
         }));
       }
     },
     runAllSteps: async () => {
-      set({ isRunning: true });
+      set({ isRunning: true, error: null });
       await get().actions.initialize();
+      if (get().error) {
+          set({ isRunning: false });
+          return;
+      }
       for (const step of WORKFLOW_STEPS) {
         if (stepFunctions[step.code]) {
             await get().actions.runStep(step.code);
