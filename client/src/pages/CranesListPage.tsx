@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import apiClient from '../apiClient';
 
 // Assuming CraneStatus and CraneOut schemas are defined somewhere accessible
@@ -27,8 +27,14 @@ interface Crane {
 
 const CranesListPage: React.FC = () => {
     const { ownerId } = useParams<{ ownerId: string }>();
+    const location = useLocation();
+    const ownerName = location.state?.ownerName || `Owner ID: ${ownerId}`;
     const [cranes, setCranes] = useState<Crane[]>([]);
-    const [statusFilter, setStatusFilter] = useState<CraneStatus | ''>('');
+    const [filters, setFilters] = useState({
+        status: '',
+        model_name: '',
+        min_capacity: '',
+    });
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -37,10 +43,12 @@ const CranesListPage: React.FC = () => {
             if (!ownerId) return;
             try {
                 setLoading(true);
-                const endpoint = statusFilter
-                    ? `/owners/${ownerId}/cranes?status=${statusFilter}`
-                    : `/owners/${ownerId}/cranes`;
-                const response = await apiClient.get(endpoint);
+                const params = new URLSearchParams();
+                if (filters.status) params.append('status', filters.status);
+                if (filters.model_name) params.append('model_name', filters.model_name);
+                if (filters.min_capacity) params.append('min_capacity', filters.min_capacity);
+
+                const response = await apiClient.get(`/owners/${ownerId}/cranes?${params.toString()}`);
                 setCranes(response.data);
                 setError(null);
             } catch (err) {
@@ -52,7 +60,11 @@ const CranesListPage: React.FC = () => {
         };
 
         fetchCranes();
-    }, [ownerId, statusFilter]);
+    }, [ownerId, filters]);
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
 
     // Handler for deployment request (placeholder)
     const handleDeployRequest = (craneId: string) => {
@@ -67,20 +79,36 @@ const CranesListPage: React.FC = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-cyan-glow">Cranes for Owner {ownerId}</h1>
-                <div>
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as CraneStatus | '')}
-                        className="bg-gray-800 border border-gray-600 text-white rounded-md p-2"
-                    >
-                        <option value="">All Statuses</option>
-                        <option value={CraneStatus.NORMAL}>Normal</option>
-                        <option value={CraneStatus.REPAIR}>Repair</option>
-                        <option value={CraneStatus.INBOUND}>Inbound</option>
-                    </select>
-                </div>
+            <h1 className="text-3xl font-bold text-cyan-glow mb-4">Cranes for {ownerName}</h1>
+            <div className="p-4 bg-gray-800/50 rounded-lg mb-6 flex items-center gap-4">
+                <span className="font-bold text-gray-300">Filters:</span>
+                <select
+                    name="status"
+                    value={filters.status}
+                    onChange={handleFilterChange}
+                    className="bg-gray-700 border border-gray-600 text-white rounded-md p-2"
+                >
+                    <option value="">All Statuses</option>
+                    <option value={CraneStatus.NORMAL}>Normal</option>
+                    <option value={CraneStatus.REPAIR}>Repair</option>
+                    <option value={CraneStatus.INBOUND}>Inbound</option>
+                </select>
+                <input
+                    type="text"
+                    name="model_name"
+                    placeholder="Model Name"
+                    value={filters.model_name}
+                    onChange={handleFilterChange}
+                    className="bg-gray-700 border border-gray-600 text-white rounded-md p-2"
+                />
+                <input
+                    type="number"
+                    name="min_capacity"
+                    placeholder="Min Capacity (ton·m)"
+                    value={filters.min_capacity}
+                    onChange={handleFilterChange}
+                    className="bg-gray-700 border border-gray-600 text-white rounded-md p-2"
+                />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {cranes.map((crane) => (

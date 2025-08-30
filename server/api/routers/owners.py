@@ -38,13 +38,20 @@ def list_owners_with_stats(db: Session = Depends(get_db)):
 def list_owner_cranes(
     owner_id: str,
     status: Optional[CraneStatus] = None,
+    model_name: Optional[str] = None,
+    min_capacity: Optional[int] = None,
     db: Session = Depends(get_db),
 ):
     """
-    List all cranes owned by a specific organization, with an optional filter for
-    status.
+    List all cranes owned by a specific organization, with optional filters.
     """
-    return crane_service.list_owner_cranes(db=db, owner_org_id=owner_id, status=status)
+    return crane_service.list_owner_cranes(
+        db=db,
+        owner_org_id=owner_id,
+        status=status,
+        model_name=model_name,
+        min_capacity=min_capacity,
+    )
 
 
 @router.get("/me/requests", response_model=List[RequestOut])
