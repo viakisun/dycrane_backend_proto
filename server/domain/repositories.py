@@ -1,13 +1,43 @@
+import hashlib
 import logging
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union, cast
 
+from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
 
-from server.domain.models import Base, Crane
+from server.domain.models import (
+    DriverAttendance,
+    Base,
+    Crane,
+    DriverAssignment,
+    DriverDocumentItem,
+    DriverDocumentRequest,
+    Site,
+    SiteCraneAssignment,
+    User,
+)
+from server.domain.schemas import (
+    AttendanceCreate,
+    AttendanceUpdate,
+    CraneCreate,
+    CraneStatus,
+    CraneUpdate,
+    DocumentItemCreate,
+    DocumentItemUpdate,
+    DocumentRequestCreate,
+    DocumentRequestUpdate,
+    DriverAssignmentCreate,
+    DriverAssignmentUpdate,
+    SiteCraneAssignmentCreate,
+    SiteCraneAssignmentUpdate,
+    SiteCreate,
+    SiteUpdate,
+    UserCreate,
+    UserUpdate,
+)
 
 # Define custom types for SQLAlchemy models and Pydantic schemas
 ModelType = TypeVar("ModelType", bound=Base)
@@ -44,7 +74,10 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             The model instance if found, otherwise None.
         """
         logger.debug(f"Getting {self.model.__name__} with id: {id}")
-        return db.query(self.model).filter(self.model.id == id).first()
+        return cast(
+            Optional[ModelType],
+            db.query(self.model).filter(self.model.id == id).first(),
+        )
 
     def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100
@@ -60,8 +93,10 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Returns:
             A list of model instances.
         """
-        logger.debug(f"Getting multiple {self.model.__name__} with skip: {skip}, limit: {limit}")
-        return db.query(self.model).offset(skip).limit(limit).all()
+        logger.debug(
+            f"Getting multiple {self.model.__name__} with skip: {skip}, limit: {limit}"
+        )
+        return cast(List[ModelType], db.query(self.model).offset(skip).limit(limit).all())
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         """
@@ -87,8 +122,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             db.rollback()
             logger.error(f"Database error on create: {e}")
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Database error: {e}"
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"Database error: {e}"
             )
 
     def update(
@@ -140,15 +174,14 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.delete(obj)
         db.commit()
         logger.info(f"Removed {self.model.__name__} with id: {id}")
-        return obj
+        return cast(ModelType, obj)
 
 
 # Example of a specific repository
-from server.domain.models import Site, User
-from server.domain.schemas import SiteCreate, SiteUpdate, UserCreate, UserUpdate
-
 class SiteRepository(BaseRepository[Site, SiteCreate, SiteUpdate]):
-    def get_multi_for_user(self, db: Session, *, user_id: Optional[str] = None) -> List[Site]:
+    def get_multi_for_user(
+        self, db: Session, *, user_id: Optional[str] = None
+    ) -> List[Site]:
         """
         Retrieves multiple sites, optionally filtered by a user involved.
         A simple implementation might just check the 'requested_by_id'.
@@ -158,12 +191,11 @@ class SiteRepository(BaseRepository[Site, SiteCreate, SiteUpdate]):
         if user_id:
             # For now, we only filter by the user who requested the site.
             query = query.filter(self.model.requested_by_id == user_id)
-        return query.all()
+        return cast(List[Site], query.all())
 
-import hashlib
 
-class UserRepository(BaseRepository[User, "UserCreate", "UserUpdate"]):
-    def create(self, db: Session, *, obj_in: "UserCreate") -> User:
+class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
+    def create(self, db: Session, *, obj_in: UserCreate) -> User:
         # A real implementation would use a proper password hashing library like passlib
         hashed_password = hashlib.sha256(obj_in.password.encode()).hexdigest()
         create_data = obj_in.model_dump(exclude={"password"})
@@ -176,37 +208,52 @@ class UserRepository(BaseRepository[User, "UserCreate", "UserUpdate"]):
         return db_obj
 
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
-        return db.query(User).filter(User.email == email).first()
+        return cast(Optional[User], db.query(User).filter(User.email == email).first())
 
-from server.domain.schemas import CraneStatus
 
-class CraneRepository(BaseRepository[Crane, "CraneCreate", "CraneUpdate"]):
-    def get_by_owner(self, db: Session, *, owner_org_id: str, status: Optional[CraneStatus] = None) -> List[Crane]:
+class CraneRepository(BaseRepository[Crane, CraneCreate, CraneUpdate]):
+    def get_by_owner(
+        self, db: Session, *, owner_org_id: str, status: Optional[CraneStatus] = None
+    ) -> List[Crane]:
         query = db.query(Crane).filter(Crane.owner_org_id == owner_org_id)
         if status:
             query = query.filter(Crane.status == status)
-        return query.all()
+        return cast(List[Crane], query.all())
 
-from server.domain.models import SiteCraneAssignment, DriverAssignment
 
-class SiteCraneAssignmentRepository(BaseRepository[SiteCraneAssignment, "SiteCraneAssignmentCreate", "SiteCraneAssignmentUpdate"]):
+class SiteCraneAssignmentRepository(
+    BaseRepository[
+        SiteCraneAssignment, SiteCraneAssignmentCreate, SiteCraneAssignmentUpdate
+    ]
+):
     pass
 
-class DriverAssignmentRepository(BaseRepository[DriverAssignment, "DriverAssignmentCreate", "DriverAssignmentUpdate"]):
+
+class DriverAssignmentRepository(
+    BaseRepository[DriverAssignment, DriverAssignmentCreate, DriverAssignmentUpdate]
+):
     pass
 
-from server.domain.models import DriverDocumentRequest, DriverDocumentItem
 
-class DocumentRequestRepository(BaseRepository[DriverDocumentRequest, "DocumentRequestCreate", "DocumentRequestUpdate"]):
+class DocumentRequestRepository(
+    BaseRepository[
+        DriverDocumentRequest, DocumentRequestCreate, DocumentRequestUpdate
+    ]
+):
     pass
 
-class DocumentItemRepository(BaseRepository[DriverDocumentItem, "DocumentItemCreate", "DocumentItemUpdate"]):
+
+class DocumentItemRepository(
+    BaseRepository[DriverDocumentItem, DocumentItemCreate, DocumentItemUpdate]
+):
     pass
 
-from server.domain.models import DriverAttendance
 
-class AttendanceRepository(BaseRepository[DriverAttendance, "AttendanceCreate", "AttendanceUpdate"]):
+class AttendanceRepository(
+    BaseRepository[DriverAttendance, AttendanceCreate, AttendanceUpdate]
+):
     pass
+
 
 site_repo = SiteRepository(Site)
 user_repo = UserRepository(User)

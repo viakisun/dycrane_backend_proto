@@ -1,6 +1,6 @@
 import logging
-from typing import List
-from fastapi import APIRouter, Depends, status, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from server.database import get_db
@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/{request_id}/respond", response_model=RequestOut)
-def respond_to_deployment_request(request_id: str, payload: RequestUpdate, db: Session = Depends(get_db)):
+def respond_to_deployment_request(
+    request_id: str, payload: RequestUpdate, db: Session = Depends(get_db)
+):
     """
     Approve or reject a deployment request.
     This is typically done by an OWNER.
@@ -26,4 +28,7 @@ def respond_to_deployment_request(request_id: str, payload: RequestUpdate, db: S
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to respond to request {request_id}: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
