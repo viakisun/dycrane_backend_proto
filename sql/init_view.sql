@@ -26,7 +26,7 @@ CREATE VIEW ops.available_cranes AS
 SELECT 
     c.id,
     c.owner_org_id,
-    c.model_name,
+    cm.model_name,
     c.serial_no,
     c.status,
     c.created_at,
@@ -35,6 +35,7 @@ SELECT
     o.type as owner_type
 FROM ops.cranes c
 JOIN ops.orgs o ON c.owner_org_id = o.id
+JOIN ops.crane_models cm ON c.model_id = cm.id
 WHERE c.status = 'NORMAL'
   AND NOT EXISTS (
     SELECT 1
@@ -50,7 +51,7 @@ CREATE VIEW ops.v_owner_cranes AS
 SELECT 
     c.id,
     c.owner_org_id,
-    c.model_name,
+    cm.model_name,
     c.serial_no,
     c.status,
     c.created_at,
@@ -83,7 +84,8 @@ SELECT
         LIMIT 1
     ) as current_assignment
 FROM ops.cranes c
-ORDER BY c.model_name, c.serial_no;
+JOIN ops.crane_models cm ON c.model_id = cm.id
+ORDER BY cm.model_name, c.serial_no;
 
 -- Site assignment summary with enhanced metrics
 CREATE VIEW ops.site_summary AS
@@ -144,7 +146,7 @@ SELECT
     u.name as driver_name,
     u.email as driver_email,
     s.name as site_name,
-    c.model_name as crane_model,
+    cm.model_name as crane_model,
     c.serial_no as crane_serial,
     -- Attendance metrics
     COUNT(att.id) AS total_work_days,
@@ -181,12 +183,13 @@ FROM ops.driver_assignments da
 JOIN ops.site_crane_assignments sca ON da.site_crane_id = sca.id
 JOIN ops.sites s ON sca.site_id = s.id
 JOIN ops.cranes c ON sca.crane_id = c.id
+JOIN ops.crane_models cm ON c.model_id = cm.id
 JOIN ops.users u ON da.driver_id = u.id
 LEFT JOIN ops.driver_attendance att ON da.id = att.driver_assignment_id
 GROUP BY 
     da.id, da.driver_id, da.site_crane_id, sca.site_id, sca.crane_id,
     da.start_date, da.end_date, da.status,
-    u.name, u.email, s.name, c.model_name, c.serial_no;
+    u.name, u.email, s.name, cm.model_name, c.serial_no;
 
 -- Site assignments with full relationship details
 CREATE VIEW ops.v_site_assignments AS
@@ -204,7 +207,7 @@ SELECT
     s.start_date as site_start,
     s.end_date as site_end,
     -- Crane details
-    c.model_name,
+    cm.model_name,
     c.serial_no,
     c.status as crane_status,
     o.name as owner_name,
@@ -222,13 +225,14 @@ SELECT
 FROM ops.site_crane_assignments sca
 JOIN ops.sites s ON sca.site_id = s.id
 JOIN ops.cranes c ON sca.crane_id = c.id
+JOIN ops.crane_models cm ON c.model_id = cm.id
 JOIN ops.orgs o ON c.owner_org_id = o.id
 JOIN ops.users u ON sca.assigned_by = u.id
 LEFT JOIN ops.driver_assignments da ON sca.id = da.site_crane_id
 GROUP BY 
     sca.id, sca.site_id, sca.crane_id, sca.start_date, sca.end_date, sca.status,
     s.name, s.address, s.status, s.start_date, s.end_date,
-    c.model_name, c.serial_no, c.status, o.name, u.name, u.email;
+    cm.model_name, c.serial_no, c.status, o.name, u.name, u.email;
 
 -- Driver workload summary
 CREATE VIEW ops.v_driver_workload AS
@@ -360,13 +364,14 @@ BEGIN
     SELECT 
         da.id,
         s.name,
-        c.model_name,
+        cm.model_name,
         da.start_date,
         da.end_date
     FROM ops.driver_assignments da
     JOIN ops.site_crane_assignments sca ON da.site_crane_id = sca.id
     JOIN ops.sites s ON sca.site_id = s.id
     JOIN ops.cranes c ON sca.crane_id = c.id
+    JOIN ops.crane_models cm ON c.model_id = cm.id
     WHERE da.driver_id = p_driver_id
       AND da.status = 'ASSIGNED'
       AND da.start_date <= COALESCE(p_end_date, '9999-12-31'::DATE)
