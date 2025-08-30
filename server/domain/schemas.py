@@ -5,7 +5,7 @@ Defines API request/response models and validation rules.
 
 import datetime as dt
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, field_validator
 
