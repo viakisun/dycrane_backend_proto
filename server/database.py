@@ -111,10 +111,26 @@ class DatabaseManager:
             logger.error(f"Database health check failed: {e}")
             return False
 
-    def reset_database(self) -> None:
+    def reset_transactional_data(self) -> None:
         """
-        Reset the database by truncating all tables.
-        This is intended for testing and development environments.
+        Reset transactional data by truncating relevant tables.
+        Preserves master data like users, orgs, and cranes.
+        """
+        try:
+            with open("sql/04_transactional_reset.sql") as f:
+                reset_sql = f.read()
+            with self.get_session() as session:
+                session.execute(text(reset_sql))
+                session.commit()
+            logger.info("Transactional data has been reset successfully.")
+        except Exception as e:
+            logger.error(f"Failed to reset transactional data: {e}")
+            raise
+
+    def reset_full_database(self) -> None:
+        """
+        Reset the entire database by truncating all tables.
+        WARNING: This is a destructive operation.
         """
         try:
             with open("sql/03_reset.sql") as f:
@@ -122,9 +138,9 @@ class DatabaseManager:
             with self.get_session() as session:
                 session.execute(text(reset_sql))
                 session.commit()
-            logger.info("Database has been reset successfully.")
+            logger.info("Full database reset successfully.")
         except Exception as e:
-            logger.error(f"Failed to reset database: {e}")
+            logger.error(f"Failed to perform full database reset: {e}")
             raise
 
     def close(self) -> None:

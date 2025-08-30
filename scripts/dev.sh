@@ -49,8 +49,9 @@ activate_venv() {
 
 # --- Database Operations ---
 initialize_database() {
-    step "Initializing Database"
-    "$VENV_PATH/bin/python" "$PROJECT_ROOT/scripts/db_cli.py" "full"
+    reset_type=${1:-full} # Default to full reset
+    step "Initializing Database ($reset_type)"
+    "$VENV_PATH/bin/python" "$PROJECT_ROOT/scripts/db_cli.py" "$reset_type"
     if [ $? -ne 0 ]; then
         failure "Database initialization failed with Python runner."
     fi
@@ -132,18 +133,27 @@ fi
 activate_venv
 
 case "$1" in
+    "db/full")
+        initialize_database "full"
+        ;;
+    "db/reset-full")
+        "$VENV_PATH/bin/python" "$PROJECT_ROOT/scripts/db_cli.py" "reset-full"
+        ;;
+    "db/reset-transactional")
+        "$VENV_PATH/bin/python" "$PROJECT_ROOT/scripts/db_cli.py" "reset-transactional"
+        ;;
     "db")
-        initialize_database
+        initialize_database "full" # Default 'db' command
         ;;
     "lint")
         run_linting
         ;;
     "test" | "test/verbose")
-        initialize_database
+        initialize_database "full" # Tests should always start from a full reset
         run_tests "$1"
         ;;
     *)
-        echo "Usage: $0 {db|lint|test|test/verbose}"
+        echo "Usage: $0 {db|db/full|db/reset-full|db/reset-transactional|lint|test|test/verbose}"
         exit 1
         ;;
 esac

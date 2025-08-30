@@ -87,11 +87,19 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     },
     reset: async () => {
         const { actions } = get();
-        actions.addLog({ actor: 'SYSTEM', stepCode: 'RESET', summary: 'Resetting server state...' });
+        actions.addLog({ actor: 'SYSTEM', stepCode: 'RESET', summary: 'Resetting transactional server data...' });
         try {
-            await apiAdapter.post('SYSTEM', '/health/reset');
-            actions.addLog({ actor: 'SYSTEM', stepCode: 'RESET', summary: 'Server state reset successfully.' });
-            set(initialState);
+            await apiAdapter.post('SYSTEM', '/health/reset-transactional');
+            actions.addLog({ actor: 'SYSTEM', stepCode: 'RESET', summary: 'Transactional data reset successfully.' });
+            // Reset client state to initial, preserving users
+            set(state => ({
+                ...initialState,
+                context: { users: state.context.users },
+                stepStatus: WORKFLOW_STEPS.reduce((acc, step) => ({ ...acc, [step.code]: 'idle' }), {}),
+                logs: [
+                    { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', stepCode: 'RESET', summary: 'Client state reset.' }
+                ]
+            }));
             await actions.initialize();
         } catch (error: any) {
             actions.addLog({ actor: 'SYSTEM', stepCode: 'RESET', summary: `Error resetting server state: ${error.message}` });
