@@ -275,11 +275,14 @@ class DocumentService:
     def submit_document_item(
         self, db: Session, *, item_in: DocItemSubmitIn
     ) -> DriverDocumentItem:
-        # A real implementation would validate the request exists and that the
-        # file_url is a valid, accessible URL.
-        # For now, we are skipping the validation.
-        item_data = DocumentItemCreate(**item_in.model_dump())
-        return document_item_repo.create(db, obj_in=item_data)
+        # A real implementation would validate the request exists.
+        # The psycopg2 driver cannot handle Pydantic's AnyHttpUrl type directly,
+        # so we must convert it to a string before creating the DB model.
+        create_data = item_in.model_dump()
+        create_data["file_url"] = str(create_data["file_url"])
+
+        item_data_for_repo = DocumentItemCreate(**create_data)
+        return document_item_repo.create(db, obj_in=item_data_for_repo)
 
     def review_document_item(
         self, db: Session, *, review_in: DocItemReviewIn

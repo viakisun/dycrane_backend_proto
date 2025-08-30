@@ -135,13 +135,16 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     },
     runAllSteps: async () => {
         set({ isRunning: true, error: null });
+        const { actions } = get();
+        await actions.initialize();
+
         for (const step of WORKFLOW_STEPS) {
             if (get().error) {
-                actions.addLog({ actor: 'SYSTEM', stepCode: 'ABORT', summary: 'Workflow aborted due to error.' });
+                get().actions.addLog({ actor: 'SYSTEM', stepCode: 'ABORT', summary: 'Workflow aborted due to error.' });
                 break;
             }
             if (stepFunctions[step.code]) {
-                await get().actions.runStep(step.code);
+                await actions.runStep(step.code);
             }
         }
         set({ isRunning: false });
