@@ -7,7 +7,7 @@ from psycopg2 import sql
 # to import from the server directory.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from scripts.procedural_seed import seed_data
+from scripts.db_seeder import seed_data
 from server.database import db_manager
 
 # --- Configuration ---
@@ -20,10 +20,9 @@ DB_PASS = os.getenv("PGPASSWORD", "admin")
 
 # Define the order of SQL script execution
 SQL_FILES = {
-    "init_db": "sql/init_db.sql",
-    "init_view": "sql/init_view.sql",
-    "truncate": "sql/truncate.sql",
-    "seed": "sql/seed.sql",
+    "schema": "sql/01_schema.sql",
+    "views": "sql/02_views.sql",
+    "reset": "sql/03_reset.sql",
 }
 
 # --- Helper Functions ---
@@ -114,7 +113,7 @@ def run_db_init():
     create_database_if_not_exists()
     conn = get_db_connection()
     if conn:
-        execute_sql_file(conn, SQL_FILES["init_db"])
+        execute_sql_file(conn, SQL_FILES["schema"])
         conn.close()
 
 def run_procedural_seed():
@@ -133,7 +132,7 @@ def run_db_reset():
     """Resets the database by truncating tables and reseeding."""
     conn = get_db_connection()
     if conn:
-        execute_sql_file(conn, SQL_FILES["truncate"])
+        execute_sql_file(conn, SQL_FILES["reset"])
         conn.close()
     run_procedural_seed()
 
@@ -143,8 +142,8 @@ def run_full_setup():
     run_db_init()
     conn = get_db_connection()
     if conn:
-        execute_sql_file(conn, SQL_FILES["init_view"])
-        execute_sql_file(conn, SQL_FILES["truncate"])
+        execute_sql_file(conn, SQL_FILES["views"])
+        execute_sql_file(conn, SQL_FILES["reset"])
         conn.close()
     run_procedural_seed()
     print_success("Full database setup complete.")

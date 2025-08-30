@@ -50,7 +50,7 @@ activate_venv() {
 # --- Database Operations ---
 initialize_database() {
     step "Initializing Database"
-    "$VENV_PATH/bin/python" "$PROJECT_ROOT/scripts/db_runner.py" "full"
+    "$VENV_PATH/bin/python" "$PROJECT_ROOT/scripts/db_cli.py" "full"
     if [ $? -ne 0 ]; then
         failure "Database initialization failed with Python runner."
     fi

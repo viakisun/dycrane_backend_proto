@@ -53,10 +53,6 @@ function Write-Failure($Message, $ExitCode = 1) {
 }
 
 # --- Prerequisite Checks ---
-function Test-Psql {
-    return (Get-Command psql -ErrorAction SilentlyContinue) -ne $null
-}
-
 function Activate-Venv {
     if (-not (Test-Path $VenvPath)) {
         Write-SubStep "Virtual environment not found. Creating..."
@@ -73,22 +69,8 @@ function Activate-Venv {
 # --- Database Operations ---
 function Initialize-Database {
     Write-Step "Initializing Database"
-    if (Test-Psql) {
-        Write-SubStep "Using psql for database operations."
-        $env:PGPASSWORD = $env:PGPASSWORD
-        # Attempt to create DB, suppress errors if it exists
-        psql -h $env:PGHOST -U $env:PGUSER -d "postgres" -c "CREATE DATABASE $($env:PGDATABASE)" 2>$null
-
-        psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/init_db.sql"
-        psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/init_view.sql"
-        psql -h $env:PGHOST -U $env:PGUSER -d $env:PGDATABASE -v ON_ERROR_STOP=1 -f "$ProjectRoot/sql/truncate.sql"
-        Write-SubStep "Running procedural seeder..."
-        python "$ProjectRoot/scripts/procedural_seed.py"
-    } else {
-        Write-SubStep "psql not found, falling back to Python runner."
-        python "$ProjectRoot/scripts/db_runner.py" "full"
-    }
-
+    Write-SubStep "Using Python runner for database operations..."
+    python "$ProjectRoot/scripts/db_cli.py" "full"
     if ($LASTEXITCODE -ne 0) { Write-Failure "Database initialization failed." }
     Write-Success "Database initialized."
 }
