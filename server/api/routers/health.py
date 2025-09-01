@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/", response_model=HealthCheckResponse)
-def health_check(db: Session = Depends(get_db)):
+def health_check_endpoint(db: Session = Depends(get_db)):
     """
     Health check endpoint for service monitoring.
     """
@@ -35,7 +35,7 @@ def health_check(db: Session = Depends(get_db)):
 
 
 @router.post("/reset-transactional", status_code=204)
-def reset_transactional_data():
+def reset_transactional_data_endpoint():
     """
     Reset only the transactional data in the database.
     Preserves master data like users, cranes, etc.
@@ -49,7 +49,7 @@ def reset_transactional_data():
 
 
 @router.post("/reset-full", status_code=204)
-def reset_full_database_for_testing():
+def reset_full_database_for_testing_endpoint():
     """
     Reset the entire database. FOR DEVELOPMENT/TESTING ONLY.
     WARNING: This is a destructive operation.

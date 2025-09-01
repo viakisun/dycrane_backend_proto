@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/with-stats", response_model=List[OwnerStatsOut])
-def list_owners_with_stats(db: Session = Depends(get_db)):
+def list_owners_with_stats_endpoint(db: Session = Depends(get_db)):
     """
     List all owners with statistics about their crane fleet.
     """
@@ -35,7 +35,7 @@ def list_owners_with_stats(db: Session = Depends(get_db)):
 
 
 @router.get("/{owner_id}/cranes", response_model=List[CraneOut])
-def list_owner_cranes(
+def list_owner_cranes_endpoint(
     owner_id: str,
     status: Optional[CraneStatus] = None,
     model_name: Optional[str] = None,
@@ -55,7 +55,7 @@ def list_owner_cranes(
 
 
 @router.get("/me/requests", response_model=List[RequestOut])
-def list_my_requests(
+def list_my_requests_endpoint(
     user_id: str,  # In a real app, this would be from Depends(get_current_user)
     type: Optional[RequestType] = None,
     request_status: Optional[RequestStatus] = None,
