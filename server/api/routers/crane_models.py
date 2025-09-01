@@ -11,9 +11,9 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.get("/", response_model=List[CraneModelOut])
-def list_crane_models(db: Session = Depends(get_db)):
+@router.get("", response_model=List[CraneModelOut])
+def list_crane_models_endpoint(db: Session = Depends(get_db)):
     """
-    List all crane models with optional filtering.
+    List all crane models.
     """
     return crane_model_service.get_models(db=db)

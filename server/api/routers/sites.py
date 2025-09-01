@@ -5,23 +5,23 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from server.database import get_db
-from server.domain.schemas import SiteApprove, SiteCreate, SiteOut
+from server.domain.schemas import SiteCreate, SiteOut, SiteUpdate
 from server.domain.services import site_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/", response_model=SiteOut, status_code=status.HTTP_201_CREATED)
-def create_site(payload: SiteCreate, db: Session = Depends(get_db)):
+@router.post("", response_model=SiteOut, status_code=status.HTTP_201_CREATED)
+def create_site_endpoint(payload: SiteCreate, db: Session = Depends(get_db)):
     """
     Create a new construction site.
     """
     return site_service.create_site(db=db, site_in=payload)
 
 
-@router.get("/", response_model=List[SiteOut])
-def list_sites(
+@router.get("", response_model=List[SiteOut])
+def list_sites_endpoint(
     db: Session = Depends(get_db),
     mine: Optional[bool] = None,
     user_id: Optional[str] = None,
@@ -34,11 +34,9 @@ def list_sites(
     return site_service.list_sites(db=db, mine=mine, user_id=user_id)
 
 
-@router.post("/{site_id}/approve", response_model=SiteOut)
-def approve_site(site_id: str, payload: SiteApprove, db: Session = Depends(get_db)):
+@router.patch("/{site_id}", response_model=SiteOut)
+def update_site_endpoint(site_id: str, payload: SiteUpdate, db: Session = Depends(get_db)):
     """
-    Approve a construction site.
+    Update a site's attributes, including approving it.
     """
-    return site_service.approve_site(
-        db=db, site_id=site_id, approved_by_id=payload.approved_by_id
-    )
+    return site_service.update_site(db=db, site_id=site_id, site_in=payload)

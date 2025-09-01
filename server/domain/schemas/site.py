@@ -43,16 +43,8 @@ class SiteUpdate(BaseModel):
     start_date: Optional[dt.date] = None
     end_date: Optional[dt.date] = None
     status: Optional[SiteStatus] = None
-
-
-class SiteApprove(BaseModel):
-    """Schema for approving a construction site."""
-
-    approved_by_id: str = Field(..., description="MANUFACTURER user ID")
-
-    model_config = ConfigDict(
-        json_schema_extra={"example": {"approved_by_id": "manufacturer-uuid"}}
-    )
+    approved_by_id: Optional[str] = None
+    approved_at: Optional[dt.datetime] = None
 
 
 class SiteOut(BaseModel):
