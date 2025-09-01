@@ -3,7 +3,7 @@ import { WORKFLOW_STEPS } from '../workflow-def';
 import { createSite } from '../steps/B1_createSite';
 import { approveSite } from '../steps/B2_approveSite';
 import { listOwnerCranes } from '../steps/C1_listOwnerCranes';
-import { requestCraneAssignment } from '../steps/C3_requestCraneAssignment';
+import { createCraneAssignment } from '../steps/C3_createCraneAssignment';
 import { assignDriver } from '../steps/D1_assignDriver';
 import { recordAttendance } from '../steps/D2_recordAttendance';
 import { requestDocument } from '../steps/E1_requestDocument';
@@ -50,7 +50,7 @@ const stepFunctions: { [key: string]: (input: any) => Promise<any> } = {
   B1: createSite,
   B2: approveSite,
   C1: listOwnerCranes,
-  C3: requestCraneAssignment,
+  C3: createCraneAssignment,
   D1: assignDriver,
   D2: recordAttendance,
   E1: requestDocument,

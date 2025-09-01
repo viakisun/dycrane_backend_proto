@@ -1,7 +1,9 @@
 from fastapi import APIRouter
 
 from server.api.routers import (
-    assignments,
+    crane_assignments,
+    driver_assignments,
+    attendances,
     crane_models,
     cranes,
     documents,
@@ -21,7 +23,15 @@ api_router.include_router(
 )
 api_router.include_router(owners.router, prefix="/owners", tags=["owners"])
 api_router.include_router(
-    assignments.router, prefix="/assignments", tags=["assignments"]
+    crane_assignments.router, prefix="/crane-assignments", tags=["crane-assignments"]
+)
+api_router.include_router(
+    driver_assignments.router,
+    prefix="/driver-assignments",
+    tags=["driver-assignments"],
+)
+api_router.include_router(
+    attendances.router, prefix="/attendances", tags=["attendances"]
 )
 api_router.include_router(documents.router, prefix="/docs", tags=["documents"])
 api_router.include_router(requests.router, prefix="/requests", tags=["requests"])

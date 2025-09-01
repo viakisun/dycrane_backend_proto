@@ -1,18 +1,18 @@
 import { apiAdapter } from '../transport/apiAdapter';
 import { StepInput } from './types';
 
-type RequestCraneAssignmentInput = StepInput & {
+type CreateCraneAssignmentInput = StepInput & {
   siteId: string;
   craneId: string;
 };
 
-type RequestCraneAssignmentOutput = {
+type CreateCraneAssignmentOutput = {
   assignmentId: string;
 };
 
-export async function requestCraneAssignment(
-  input: RequestCraneAssignmentInput
-): Promise<RequestCraneAssignmentOutput> {
+export async function createCraneAssignment(
+  input: CreateCraneAssignmentInput
+): Promise<CreateCraneAssignmentOutput> {
   const { context, siteId, craneId } = input;
   const safetyManager = context.users?.SAFETY_MANAGER;
 
@@ -35,7 +35,7 @@ export async function requestCraneAssignment(
 
   const response = await apiAdapter.post(
     'SAFETY_MANAGER',
-    '/assignments/crane',
+    '/crane-assignments',
     assignmentData
   );
 
