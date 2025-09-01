@@ -6,7 +6,8 @@ from server.api.routers import (
     attendances,
     crane_models,
     cranes,
-    documents,
+    document_requests,
+    document_items,
     health,
     owners,
     requests,
@@ -33,5 +34,10 @@ api_router.include_router(
 api_router.include_router(
     attendances.router, prefix="/attendances", tags=["attendances"]
 )
-api_router.include_router(documents.router, prefix="/docs", tags=["documents"])
+api_router.include_router(
+    document_requests.router, prefix="/document-requests", tags=["document-requests"]
+)
+api_router.include_router(
+    document_items.router, prefix="/document-items", tags=["document-items"]
+)
 api_router.include_router(requests.router, prefix="/requests", tags=["requests"])
