@@ -32,7 +32,7 @@ export async function requestDocument(
 
   const response = await apiAdapter.post(
     'SAFETY_MANAGER',
-    '/document-requests',
+    '/compliance/document-requests',
     docRequestData
   );
 

@@ -17,5 +17,5 @@ export async function recordAttendance(input: RecordAttendanceInput): Promise<vo
     check_out_at: `${workDate.toISOString().split('T')[0]}T17:00:00Z`,
   };
 
-  await apiAdapter.post('DRIVER', '/attendances', attendanceData);
+  await apiAdapter.post('DRIVER', '/ops/driver-attendance-logs', attendanceData);
 }
