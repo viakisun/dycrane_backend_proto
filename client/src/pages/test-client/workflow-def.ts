@@ -91,7 +91,7 @@ export interface StepDefinition {
       actor: 'MFR',
       description: '접수된 현장 요청을 승인한다. 요청/현장 상태 전이는 원자적으로 처리된다는 가정하에, 결과만 컨텍스트에 반영한다.',
       dataFlow: { in: ['siteId', 'users.MANUFACTURER'], out: ['site.status'] },
-      api: { method: 'POST', path: '/api/sites/{siteId}/approve', sample: sampleBodies.B2 },
+      api: { method: 'PATCH', path: '/sites/{siteId}', sample: sampleBodies.B2 },
     },
     {
       code: 'C1',
@@ -99,7 +99,7 @@ export interface StepDefinition {
       actor: 'SM',
       description: '특정 사업주의 가용 크레인 목록을 조회한다. 이후 배치 요청에 필요한 식별자들을 확보한다.',
       dataFlow: { in: ['users.OWNER'], out: ['craneId'] },
-      api: { method: 'GET', path: '/api/owners/{owner.orgId}/cranes' },
+      api: { method: 'GET', path: '/owners/{owner.orgId}/cranes' },
     },
     {
       code: 'C3',
@@ -107,7 +107,7 @@ export interface StepDefinition {
       actor: 'SM',
       description: '가용 크레인 중 하나를 선택해 특정 현장으로의 배치를 요청한다(요청/승인 모델).',
       dataFlow: { in: ['siteId', 'craneId', 'users.SAFETY_MANAGER'], out: ['assignmentId'] },
-      api: { method: 'POST', path: '/api/assignments/crane', sample: sampleBodies.C3 },
+      api: { method: 'POST', path: '/crane-assignments', sample: sampleBodies.C3 },
     },
     {
       code: 'D1',
@@ -115,7 +115,7 @@ export interface StepDefinition {
       actor: 'OWN',
       description: '배치된 크레인에 운전자를 배정한다.',
       dataFlow: { in: ['assignmentId', 'users.DRIVER'], out: ['driverAssignmentId'] },
-      api: { method: 'POST', path: '/api/assignments/driver', sample: sampleBodies.D1 },
+      api: { method: 'POST', path: '/driver-assignments', sample: sampleBodies.D1 },
     },
     {
       code: 'D2',
@@ -123,7 +123,7 @@ export interface StepDefinition {
       actor: 'DRV',
       description: '해당 현장/크레인에 출근 상태를 기록한다. 후속 서류 절차의 전제가 된다.',
       dataFlow: { in: ['driverAssignmentId'], out: ['attendance.latest'] },
-      api: { method: 'POST', path: '/api/assignments/attendance', sample: sampleBodies.D2 },
+      api: { method: 'POST', path: '/attendances', sample: sampleBodies.D2 },
     },
     {
       code: 'E1',
@@ -131,7 +131,7 @@ export interface StepDefinition {
       actor: 'SM',
       description: '특정 운전자에게 서류 제출을 요청한다.',
       dataFlow: { in: ['siteId', 'users.DRIVER', 'users.SAFETY_MANAGER'], out: ['docRequestId'] },
-      api: { method: 'POST', path: '/api/docs/requests', sample: sampleBodies.E1 },
+      api: { method: 'POST', path: '/document-requests', sample: sampleBodies.E1 },
     },
     {
       code: 'E2',
@@ -139,7 +139,7 @@ export interface StepDefinition {
       actor: 'DRV',
       description: '요청된 문서를 제출한다.',
       dataFlow: { in: ['docRequestId'], out: ['docItemId'] },
-      api: { method: 'POST', path: '/api/docs/items/submit', sample: sampleBodies.E2 },
+      api: { method: 'POST', path: '/document-items', sample: sampleBodies.E2 },
     },
     {
       code: 'E3',
@@ -147,7 +147,7 @@ export interface StepDefinition {
       actor: 'SM',
       description: '제출된 문서를 검토/확정한다.',
       dataFlow: { in: ['docItemId', 'users.SAFETY_MANAGER'], out: ['doc.reviewed'] },
-      api: { method: 'POST', path: '/api/docs/items/review', sample: sampleBodies.E3 },
+      api: { method: 'PATCH', path: '/document-items/{docItemId}', sample: sampleBodies.E3 },
     },
     {
       code: 'F1',

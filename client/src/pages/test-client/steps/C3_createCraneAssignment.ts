@@ -35,7 +35,7 @@ export async function createCraneAssignment(
 
   const response = await apiAdapter.post(
     'SAFETY_MANAGER',
-    '/assignments/crane',
+    '/crane-assignments',
     assignmentData
   );
 
