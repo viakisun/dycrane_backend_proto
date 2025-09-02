@@ -14,10 +14,9 @@ export async function reviewDocument(input: ReviewDocumentInput): Promise<void> 
   }
 
   const docReviewData = {
-    item_id: docItemId,
     reviewer_id: safetyManager.id,
     approve: true,
   };
 
-  await apiAdapter.post('SAFETY_MANAGER', `/docs/items/review`, docReviewData);
+  await apiAdapter.patch('SAFETY_MANAGER', `/document-items/${docItemId}`, docReviewData);
 }
