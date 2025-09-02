@@ -1,23 +1,10 @@
 import React from 'react';
-import { useWorkflowStore, Log } from './test-client/state/workflowStore';
+import { useWorkflowStore } from './test-client/state/workflowStore';
 import { WORKFLOW_STEPS } from './test-client/workflow-def';
 import { WorkflowStepCard } from './test-client/ui/WorkflowStepCard';
 
-const GlobalLog: React.FC<{ log: Log }> = ({ log }) => {
-    const baseClasses = "text-sm p-3 rounded-md mb-4";
-    const successClasses = "bg-green-100 text-green-800";
-    const errorClasses = "bg-red-100 text-red-800";
-
-    return (
-        <div className={`${baseClasses} ${log.isError ? errorClasses : successClasses}`}>
-            <span className="font-semibold">{log.actor}:</span> {log.summary}
-        </div>
-    );
-};
-
-
 const TestClientPage: React.FC = () => {
-  const { isRunning, isResetting, globalLog, actions } = useWorkflowStore();
+  const { isRunning, actions } = useWorkflowStore();
   const { runAllSteps, fullReset } = actions;
 
   return (
@@ -32,22 +19,20 @@ const TestClientPage: React.FC = () => {
         <div className="flex items-center space-x-2">
             <button
                 onClick={fullReset}
-                disabled={isRunning || isResetting}
+                disabled={isRunning}
                 className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition-colors duration-150 disabled:opacity-50"
             >
-                {isResetting ? 'Resetting...' : 'Reset Data'}
+                Reset Data
             </button>
             <button
                 onClick={runAllSteps}
-                disabled={isRunning || isResetting}
+                disabled={isRunning}
                 className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition-colors duration-150 disabled:opacity-50"
             >
                 {isRunning ? 'Running...' : 'Run All Steps'}
             </button>
         </div>
       </header>
-
-      {globalLog && <GlobalLog log={globalLog} />}
 
       <div className="space-y-6">
         {WORKFLOW_STEPS.map((step) => (

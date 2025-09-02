@@ -36,8 +36,6 @@ type WorkflowState = {
   stepStatus: Record<string, StepStatus>;
   error: string | null;
   isRunning: boolean;
-  isResetting: boolean;
-  globalLog: Log | null;
   context: WorkflowContext;
   actions: {
     runStep: (stepCode: string) => Promise<void>;
@@ -65,8 +63,6 @@ const initialState = {
   stepStatus: WORKFLOW_STEPS.reduce((acc, step) => ({ ...acc, [step.code]: 'idle' }), {}),
   error: null,
   isRunning: false,
-  isResetting: false,
-  globalLog: null,
   context: { users: TEST_USERS },
 };
 
@@ -90,7 +86,6 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         }));
     },
     fullReset: async () => {
-        set({ isResetting: true, globalLog: null });
         get().actions.addLog('A1', { actor: 'SYSTEM', summary: 'Resetting server state...' });
         try {
             await apiAdapter.post('SYSTEM', '/health/reset-transactional');
@@ -98,8 +93,6 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
             get().actions.addLog('A1', { actor: 'SYSTEM', summary: 'Server and client state reset successfully.' });
         } catch (error: any) {
             get().actions.addLog('A1', { actor: 'SYSTEM', summary: `Error resetting server state: ${error.message}`, isError: true });
-        } finally {
-            set({ isResetting: false });
         }
     },
     runStep: async (stepCode: string) => {
@@ -108,7 +101,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       if (!stepInfo) return;
 
       actions.clearLogs(stepCode);
-      set(state => ({ stepStatus: { ...state.stepStatus, [stepCode]: 'in-progress' }, globalLog: null }));
+      set(state => ({ stepStatus: { ...state.stepStatus, [stepCode]: 'in-progress' } }));
       actions.addLog(stepCode, { actor: stepInfo.actor, summary: `${stepInfo.title} started.` });
 
       try {
@@ -134,24 +127,19 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       }
     },
     runAllSteps: async () => {
-        set({ isRunning: true, error: null, globalLog: null });
+        set({ isRunning: true, error: null });
         const { actions } = get();
 
         for (const step of WORKFLOW_STEPS) {
             if (get().error) {
-                const summary = 'Workflow aborted due to a previous error.';
-                set({ globalLog: { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', summary, isError: true } });
+                // This log needs a home. Maybe a general log? For now, console.log.
+                console.error('Workflow aborted due to error.');
                 break;
             }
             if (stepFunctions[step.code]) {
                 await actions.runStep(step.code);
             }
         }
-
-        if (!get().error) {
-            set({ globalLog: { time: new Date().toLocaleTimeString(), actor: 'SYSTEM', summary: 'Workflow completed successfully.' } });
-        }
-
         set({ isRunning: false });
     },
   },
