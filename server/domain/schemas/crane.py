@@ -1,11 +1,14 @@
 import datetime as dt
-from typing import List, Optional, Any
+from typing import Any, List, Optional
+
 from pydantic import BaseModel, ConfigDict
+
 from .enums import CraneStatus
 
 
 class CraneModelOut(BaseModel):
     """Schema for crane model specifications in API responses."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: str

@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class CraneModelService:
-    def get_models(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[CraneModel]:
+    def get_models(
+        self, db: Session, *, skip: int = 0, limit: int = 100
+    ) -> List[CraneModel]:
         """
         Retrieves a list of crane models.
         """
