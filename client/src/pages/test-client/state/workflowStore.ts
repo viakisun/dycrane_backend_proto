@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { WORKFLOW_STEPS } from '../workflow-def';
+export type { StepStatus } from './workflowStore';
 import { createSite } from '../steps/B1_createSite';
 import { approveSite } from '../steps/B2_approveSite';
 import { listOwnerCranes } from '../steps/C1_listOwnerCranes';
@@ -33,6 +34,7 @@ const TEST_USERS = {
 
 type WorkflowState = {
   logsByStepCode: Record<string, Log[]>;
+  generalLogs: Log[];
   stepStatus: Record<string, StepStatus>;
   error: string | null;
   isRunning: boolean;
@@ -41,7 +43,9 @@ type WorkflowState = {
     runStep: (stepCode: string) => Promise<void>;
     runAllSteps: () => Promise<void>;
     addLog: (stepCode: string, log: Omit<Log, 'time'>) => void;
+    addGeneralLog: (log: Omit<Log, 'time'>) => void;
     clearLogs: (stepCode: string) => void;
+    clearGeneralLogs: () => void;
     fullReset: () => Promise<void>;
   };
 };
@@ -60,6 +64,7 @@ const stepFunctions: { [key: string]: (input: any) => Promise<any> } = {
 
 const initialState = {
   logsByStepCode: {},
+  generalLogs: [],
   stepStatus: WORKFLOW_STEPS.reduce((acc, step) => ({ ...acc, [step.code]: 'idle' }), {}),
   error: null,
   isRunning: false,
@@ -80,19 +85,32 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
             }
         }));
     },
+    addGeneralLog: (log) => {
+        set(state => ({
+            generalLogs: [
+                ...state.generalLogs,
+                { ...log, time: new Date().toLocaleTimeString() }
+            ]
+        }));
+    },
     clearLogs: (stepCode) => {
         set(state => ({
             logsByStepCode: { ...state.logsByStepCode, [stepCode]: [] }
         }));
     },
+    clearGeneralLogs: () => {
+        set({ generalLogs: [] });
+    },
     fullReset: async () => {
-        get().actions.addLog('A1', { actor: 'SYSTEM', summary: 'Resetting server state...' });
+        const { addGeneralLog, clearGeneralLogs } = get().actions;
+        clearGeneralLogs();
+        addGeneralLog({ actor: 'SYSTEM', summary: 'Resetting server state...' });
         try {
             await apiAdapter.post('SYSTEM', '/health/reset-transactional');
             set(initialState);
-            get().actions.addLog('A1', { actor: 'SYSTEM', summary: 'Server and client state reset successfully.' });
+            addGeneralLog({ actor: 'SYSTEM', summary: 'Server and client state reset successfully.' });
         } catch (error: any) {
-            get().actions.addLog('A1', { actor: 'SYSTEM', summary: `Error resetting server state: ${error.message}`, isError: true });
+            addGeneralLog({ actor: 'SYSTEM', summary: `Error resetting server state: ${error.message}`, isError: true });
         }
     },
     runStep: async (stepCode: string) => {
@@ -127,20 +145,25 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       }
     },
     runAllSteps: async () => {
+        const { addGeneralLog } = get().actions;
         set({ isRunning: true, error: null });
+        addGeneralLog({ actor: 'SYSTEM', summary: 'Starting full workflow execution...' });
         const { actions } = get();
 
         for (const step of WORKFLOW_STEPS) {
             if (get().error) {
-                // This log needs a home. Maybe a general log? For now, console.log.
-                console.error('Workflow aborted due to error.');
+                addGeneralLog({ actor: 'SYSTEM', summary: `Workflow aborted due to error in step ${step.code}.`, isError: true });
                 break;
             }
             if (stepFunctions[step.code]) {
                 await actions.runStep(step.code);
             }
         }
+
         set({ isRunning: false });
+        if (!get().error) {
+            addGeneralLog({ actor: 'SYSTEM', summary: 'Full workflow completed successfully.' });
+        }
     },
   },
 }));

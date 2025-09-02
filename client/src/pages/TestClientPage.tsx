@@ -2,10 +2,16 @@ import React from 'react';
 import { useWorkflowStore } from './test-client/state/workflowStore';
 import { WORKFLOW_STEPS } from './test-client/workflow-def';
 import { WorkflowStepCard } from './test-client/ui/WorkflowStepCard';
+import { GeneralLogCard } from './test-client/ui/GeneralLogCard';
 
 const TestClientPage: React.FC = () => {
   const { isRunning, actions } = useWorkflowStore();
-  const { runAllSteps, fullReset } = actions;
+  const { runAllSteps, fullReset, clearGeneralLogs } = actions;
+
+  const handleReset = () => {
+    clearGeneralLogs();
+    fullReset();
+  }
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
@@ -18,7 +24,7 @@ const TestClientPage: React.FC = () => {
         </div>
         <div className="flex items-center space-x-2">
             <button
-                onClick={fullReset}
+                onClick={handleReset}
                 disabled={isRunning}
                 className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition-colors duration-150 disabled:opacity-50"
             >
@@ -33,6 +39,8 @@ const TestClientPage: React.FC = () => {
             </button>
         </div>
       </header>
+
+      <GeneralLogCard />
 
       <div className="space-y-6">
         {WORKFLOW_STEPS.map((step) => (
