@@ -10,4 +10,3 @@ httpx
 pytest-dotenv
 ruff
 mypy
-email-validator

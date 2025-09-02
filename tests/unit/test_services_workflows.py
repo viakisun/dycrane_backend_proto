@@ -3,8 +3,7 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
 from collections import namedtuple
 
-from server.domain.services import request_service, owner_service, crane_model_service
-from server.domain.repositories import user_repo
+from server.domain.services import request_service, owner_service, crane_model_service, user_repo
 from server.domain.schemas import RequestCreate, RequestUpdate, RequestType, RequestStatus, UserRole
 from server.domain.models import Request, User, Org, Crane, UserOrg, CraneModel
 
