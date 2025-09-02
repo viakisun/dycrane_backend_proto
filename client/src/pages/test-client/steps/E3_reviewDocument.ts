@@ -14,6 +14,7 @@ export async function reviewDocument(input: ReviewDocumentInput): Promise<void> 
   }
 
   const docReviewData = {
+    item_id: docItemId,
     reviewer_id: safetyManager.id,
     approve: true,
   };
