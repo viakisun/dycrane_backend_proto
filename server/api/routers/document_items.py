@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 
 from server.database import get_db
@@ -36,9 +36,12 @@ def review_document_item_endpoint(
     """
     Review (approve or reject) a document item.
     """
-    # The payload for review_in should not contain the item_id from the payload, but from the path.
-    # The DocItemReviewIn schema does not have item_id, so we add it for the service.
-    review_with_id = payload.dict()
-    review_with_id['item_id'] = item_id
-    item = document_service.review_document_item(db=db, review_in=review_with_id)
+    # Ensure the item ID from the path matches the one in the payload
+    if item_id != payload.item_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Item ID in path does not match item ID in payload.",
+        )
+
+    item = document_service.review_document_item(db=db, review_in=payload)
     return DocItemResponse(item_id=item.id, status=item.status)
