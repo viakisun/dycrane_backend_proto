@@ -74,6 +74,8 @@ export const apiAdapter = {
     request<T>(actor, { ...config, method: 'POST', url, data }),
   put: <T>(actor: Actor, url: string, data?: any, config?: AxiosRequestConfig) =>
     request<T>(actor, { ...config, method: 'PUT', url, data }),
-  delete: <T>(actor: Actor, url: string, config?: AxiosRequestConfig) =>
+  patch: <T>(actor: Actor, url: string, data?: any, config?: AxiosRequestConfig) =>
+    request<T>(actor, { ...config, method: 'PATCH', url, data }),
+  delete: <T>(actor: Actor, url:string, config?: AxiosRequestConfig) =>
     request<T>(actor, { ...config, method: 'DELETE', url }),
 };
