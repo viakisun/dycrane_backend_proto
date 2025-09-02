@@ -3,211 +3,7 @@ info:
   title: DY Crane Safety Management API
   description: Crane safety management system
   version: "1.0.0"
-security:
-  - BearerAuth: []
 paths:
-  /api/v1/auth/login:
-    post:
-      tags:
-        - auth
-      summary: User Login
-      description: |
-        Authenticates a user and returns an access token.
-        **DEV Mode Behavior**:
-        - This endpoint does **not** validate the password.
-        - It assigns roles based on the email address prefix:
-          - `driver*@...` -> `DRIVER`
-          - `owner*@...` -> `OWNER`
-          - `safety*@...` -> `SAFETY_MANAGER`
-        - The `access_token` is a dummy string for development use.
-        **TODO(strict)**: Replace with actual password verification.
-      operationId: login
-      security: [] # This endpoint is public
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserLogin"
-      responses:
-        "200":
-          description: Successful Authentication
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TokenResponse"
-        "422":
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
-
-  /api/v1/auth/refresh:
-    post:
-      tags:
-        - auth
-      summary: Refresh Access Token
-      description: |
-        Obtains a new access token using the current valid token.
-        **DEV Mode Behavior**:
-        - This endpoint takes the existing `dev` token, parses it, and issues a new one.
-        - It does not use a real refresh token.
-        **TODO(strict)**: Implement proper refresh token logic.
-      operationId: refresh_token
-      responses:
-        "200":
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TokenResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /api/v1/auth/logout:
-    post:
-      tags:
-        - auth
-      summary: User Logout
-      description: |
-        Logs the user out.
-        **DEV Mode Behavior**:
-        - This endpoint does nothing and simply returns a 204 No Content response.
-        **TODO(strict)**: Implement server-side token invalidation.
-      operationId: logout
-      responses:
-        "204":
-          description: Successful Logout
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /api/v1/me:
-    get:
-      tags:
-        - users
-      summary: Get Current User Profile
-      description: |
-        Retrieves the profile of the currently authenticated user.
-        The user is identified via the `Authorization` header.
-        **TODO(strict)**: Enrich user model with details from the database.
-      operationId: get_me
-      responses:
-        "200":
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CurrentUser"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /api/v1/me/permissions:
-    get:
-      tags:
-        - users
-      summary: Get User Permissions
-      description: |
-        Retrieves the permissions (scopes) for the current user based on their roles.
-        **DEV Mode Behavior**:
-        - This endpoint returns a hardcoded map of roles to permissions.
-        **TODO(strict)**: Replace with a proper permissions service.
-      operationId: get_my_permissions
-      responses:
-        "200":
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PermissionsResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /api/v1/me/bootstrap:
-    get:
-      tags:
-        - users
-      summary: Get UI Bootstrap Data
-      description: |
-        Retrieves essential data needed by the client application immediately after login.
-        **DEV Mode Behavior**:
-        - Returns a hardcoded dictionary with zero-values.
-        **TODO**: Replace with real data queries.
-      operationId: get_bootstrap_data
-      responses:
-        "200":
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BootstrapResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /api/v1/drivers/{driver_id}/active-assignments:
-    get:
-      tags:
-        - users
-      summary: Get Driver's Active Assignments
-      description: |
-        Retrieves the active assignments for a specific driver. Requires `DRIVER` role.
-        **DEV Mode Behavior**:
-        - Returns an empty list.
-        **TODO(strict)**: DB 조회/페이징/정렬/필터, RBAC 재검증, 에러 규격 적용
-      operationId: get_driver_active_assignments
-      parameters:
-        - name: driver_id
-          in: path
-          required: true
-          schema:
-            type: string
-            title: Driver Id
-        - name: date
-          in: query
-          required: false
-          schema:
-            type: string
-            default: "today"
-      responses:
-        "200":
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ActiveAssignmentsResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
   /api/v1/system/health:
     get:
       tags:
@@ -215,7 +11,6 @@ paths:
       summary: Health Check
       description: Health check endpoint for service monitoring.
       operationId: health_check
-      security: []
       responses:
         "200":
           description: Successful Response
@@ -230,7 +25,6 @@ paths:
       summary: Reset Transactional Data
       description: "Reset only the transactional data in the database.\nPreserves master data like users, cranes, etc."
       operationId: reset_transactional_data
-      security: []
       responses:
         "204":
           description: Successful Response
@@ -241,11 +35,9 @@ paths:
       summary: Reset Full Database For Testing
       description: "Reset the entire database. FOR DEVELOPMENT/TESTING ONLY.\nWARNING: This is a destructive operation."
       operationId: reset_full_database
-      security: []
       responses:
         "204":
           description: Successful Response
-
   /api/v1/catalog/crane-models:
     get:
       tags:
@@ -253,7 +45,6 @@ paths:
       summary: List Crane Models
       description: List all crane models with optional filtering.
       operationId: list_crane_models
-      security: [] # Assuming catalog is public
       responses:
         "200":
           description: Successful Response
@@ -264,29 +55,30 @@ paths:
                   $ref: "#/components/schemas/CraneModelOut"
                 type: array
                 title: Response List Crane Models
-
   /api/v1/org/sites:
     get:
       tags:
         - organization
       summary: List Sites
-      description: |
-        List all construction sites. Requires `SAFETY_MANAGER` or `DRIVER` role.
-        - If 'requested_by=me' is used, it returns sites requested by the current user.
-        **TODO(strict)**: DB 조회/페이징/정렬/필터, RBAC 재검증, 에러 규격 적용
-      operationId: list_sites_endpoint
+      description: "List all construction sites.\nIf 'mine' is true, returns only sites relevant to the user_id.\nNOTE: In a real app, user_id would come from an auth dependency."
+      operationId: list_sites
       parameters:
-        - name: requested_by
+        - name: mine
           in: query
           required: false
           schema:
-            type: string
-            enum: [me]
-        - name: status
+            anyOf:
+              - type: boolean
+              - type: "null"
+            title: Mine
+        - name: user_id
           in: query
           required: false
           schema:
-            $ref: "#/components/schemas/SiteStatus"
+            anyOf:
+              - type: string
+              - type: "null"
+            title: User Id
       responses:
         "200":
           description: Successful Response
@@ -296,18 +88,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/SiteOut"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                title: Response List Sites
         "422":
           description: Validation Error
           content:
@@ -318,10 +99,8 @@ paths:
       tags:
         - organization
       summary: Create Site
-      description: |
-        Create a new construction site. Requires `SAFETY_MANAGER` role.
-        **TODO**: Validate that payload.requested_by_id matches current_user.id
-      operationId: create_site_endpoint
+      description: Create a new construction site.
+      operationId: create_site
       requestBody:
         required: true
         content:
@@ -335,17 +114,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SiteOut"
-        "401":
-          description: Unauthorized
-        "403":
-          description: Forbidden
         "422":
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
-
   /api/v1/org/cranes:
     get:
       tags:
@@ -402,14 +176,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
-
   /api/v1/org/owners:
     get:
       tags:
         - organization
       summary: List Owners
       description: "List all owners. If 'include=stats' is provided, includes statistics about their crane fleet."
-      operationId: list_owners_endpoint
+      operationId: list_owners
       parameters:
         - name: include
           in: query
@@ -433,17 +206,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
-
   /api/v1/org/owners/{ownerId}/cranes:
     get:
       tags:
         - organization
       summary: List Owner Cranes
-      description: |
-        List all cranes owned by a specific organization. Requires `OWNER` role.
-        If `summary=true`, returns status counts instead of a list.
-        **TODO(strict)**: DB 조회/페이징/정렬/필터, RBAC 재검증, 에러 규격 적용
-      operationId: list_owner_cranes_endpoint
+      description: List all cranes owned by a specific organization, with optional filters.
+      operationId: list_owner_cranes
       parameters:
         - name: ownerId
           in: path
@@ -455,181 +224,266 @@ paths:
           in: query
           required: false
           schema:
-            $ref: "#/components/schemas/CraneStatus"
+            anyOf:
+              - $ref: "#/components/schemas/CraneStatus"
+              - type: "null"
+            title: Status
         - name: model_name
           in: query
           required: false
           schema:
-            type: string
+            anyOf:
+              - type: string
+              - type: "null"
+            title: Model Name
         - name: min_capacity
           in: query
           required: false
           schema:
-            type: integer
-        - name: summary
-          in: query
-          required: false
-          schema:
-            type: boolean
+            anyOf:
+              - type: integer
+              - type: "null"
+            title: Min Capacity
       responses:
         "200":
           description: Successful Response
           content:
             application/json:
               schema:
-                oneOf:
-                  - type: array
-                    items:
-                      $ref: "#/components/schemas/CraneOut"
-                  - $ref: "#/components/schemas/CraneSummaryResponse"
-        "401":
-          description: Unauthorized
-        "403":
-          description: Forbidden
+                type: array
+                items:
+                  $ref: "#/components/schemas/CraneOut"
+                title: Response List Owner Cranes
         "422":
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
-  # Other endpoints are omitted for brevity, but would require security tags
-  # ...
-
+  /api/v1/ops/crane-deployments:
+    post:
+      tags:
+        - operations
+      summary: Create Crane Assignment
+      description: Create a new crane assignment to a site.
+      operationId: create_crane_assignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignCraneIn"
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssignmentResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/ops/driver-deployments:
+    post:
+      tags:
+        - operations
+      summary: Create Driver Assignment
+      description: Assign a driver to a site-crane combination.
+      operationId: create_driver_assignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignDriverIn"
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriverAssignmentResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/ops/driver-attendance-logs:
+    post:
+      tags:
+        - operations
+      summary: Create Attendance
+      description: Record a new attendance entry for a driver.
+      operationId: create_attendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceIn"
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/compliance/document-requests:
+    post:
+      tags:
+        - compliance
+      summary: Create Document Request
+      description: Request a document from a driver.
+      operationId: create_document_request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocRequestIn"
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocRequestResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/compliance/document-items:
+    post:
+      tags:
+        - compliance
+      summary: Submit Document Item
+      description: Submit a new document item.
+      operationId: submit_document_item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocItemSubmitIn"
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocSubmitResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/compliance/document-items/{itemId}/review:
+    post:
+      tags:
+        - compliance
+      summary: Review Document Item
+      description: Review (approve or reject) a document item.
+      operationId: review_document_item
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            title: ItemId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocItemReviewIn"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocItemResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/deploy/requests:
+    post:
+      tags:
+        - deployment
+      summary: Create Request
+      description: Create a new request, e.g. for crane deployment.
+      operationId: create_request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestCreate"
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestOut"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/deploy/requests/{requestId}/responses:
+    post:
+      tags:
+        - deployment
+      summary: Respond To Deployment Request
+      description: "Approve or reject a deployment request.\nThis is typically done by an OWNER."
+      operationId: respond_to_request
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            title: RequestId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestUpdate"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestOut"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
 components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: |
-        JWT-based authentication.
-        **DEV Mode**: Use a dummy token in the format `dev:{user_id}:{ROLE1,ROLE2}`.
-        **TODO(strict)**: This will be replaced with a standard JWT.
-
   schemas:
-    # --- New Auth Schemas ---
-    UserLogin:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
-          minLength: 8
-      title: UserLogin
-      description: Schema for user login request.
-
-    CurrentUser:
-      type: object
-      properties:
-        id:
-          type: string
-        roles:
-          type: array
-          items:
-            type: string
-        email:
-          type: string
-          format: email
-        name:
-          type: string
-      required:
-        - id
-        - roles
-      title: CurrentUser
-      description: Schema for the current user's identity.
-
-    TokenResponse:
-      type: object
-      properties:
-        access_token:
-          type: string
-        refresh_token:
-          type: string
-          nullable: true
-        expires_in:
-          type: integer
-          default: 3600
-        token_type:
-          type: string
-          default: "Bearer"
-        user:
-          $ref: "#/components/schemas/CurrentUser"
-        capabilities:
-          type: object
-          nullable: true
-        server_time:
-          type: string
-          format: date-time
-      required:
-        - access_token
-        - expires_in
-        - token_type
-        - user
-        - server_time
-      title: TokenResponse
-      description: Schema for the response after a successful login.
-
-    PermissionsResponse:
-      type: object
-      properties:
-        scopes:
-          type: array
-          items:
-            type: string
-      title: PermissionsResponse
-      description: A list of permission scopes for the current user.
-
-    BootstrapResponse:
-      type: object
-      properties:
-        notifications_unread:
-          type: integer
-        recent_task_ids:
-          type: array
-          items:
-            type: string
-      title: BootstrapResponse
-      description: Essential data for UI initialization.
-
-    ActiveAssignmentsResponse:
-      type: object
-      properties:
-        items:
-          type: array
-          items: {}
-        total:
-          type: integer
-      title: ActiveAssignmentsResponse
-
-    CraneSummaryResponse:
-      type: object
-      properties:
-        status_counts:
-          type: object
-          properties:
-            NORMAL:
-              type: integer
-            REPAIR:
-              type: integer
-            INBOUND:
-              type: integer
-      title: CraneSummaryResponse
-
-    ErrorResponse:
-      type: object
-      properties:
-        detail:
-          type: string
-      title: ErrorResponse
-      description: Standard error response schema.
-
-    # --- From original file ---
     AssignCraneIn:
       properties:
         site_id:

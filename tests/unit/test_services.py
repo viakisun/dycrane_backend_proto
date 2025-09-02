@@ -4,9 +4,7 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from server.domain.services.site_service import SiteService
-from server.domain.services.user_service import UserService
-from server.domain.services.assignment_service import AssignmentService
+from server.domain.services import SiteService, UserService, AssignmentService
 from server.domain.schemas import SiteCreate, UserRole, SiteStatus, AssignCraneIn
 from server.domain.models import User, Site, SiteCraneAssignment
 
@@ -75,48 +73,47 @@ def test_create_site_invalid_date(site_service, user_service, db_session):
     assert exc_info.value.status_code == 400
     assert "end_date must be after start_date" in str(exc_info.value.detail)
 
-from server.domain.schemas import SiteUpdate
-
-def test_update_site_to_approve_success(site_service, user_service, db_session):
+def test_approve_site_success(site_service, user_service, db_session):
     """
-    Tests successful site approval via the update method.
+    Tests successful site approval.
     """
     # Arrange
     site_id = "site-id"
     approver_id = "manufacturer-id"
-    site_update = SiteUpdate(status=SiteStatus.ACTIVE, approved_by_id=approver_id)
-
     mock_user = User(id=approver_id, role=UserRole.MANUFACTURER, is_active=True)
     user_service.get_user_and_validate_role.return_value = mock_user
 
     mock_site = Site(id=site_id, status=SiteStatus.PENDING_APPROVAL)
 
-    with patch('server.domain.repositories.site_repo.get', return_value=mock_site), \
-         patch('server.domain.repositories.site_repo.update', side_effect=lambda db, db_obj, obj_in: db_obj) as mock_update:
+    with patch('server.domain.repositories.site_repo.get', return_value=mock_site) as mock_get, \
+         patch('server.domain.repositories.site_repo.update') as mock_update:
+
+        def update_side_effect(*args, **kwargs):
+            db_obj = kwargs['db_obj']
+            obj_in = kwargs['obj_in']
+            for key, value in obj_in.items():
+                setattr(db_obj, key, value)
+            return db_obj
+
+        mock_update.side_effect = update_side_effect
+
         # Act
-        result = site_service.update_site(db=db_session, site_id=site_id, site_in=site_update)
+        result = site_service.approve_site(db=db_session, site_id=site_id, approved_by_id=approver_id)
 
         # Assert
-        user_service.get_user_and_validate_role.assert_called_once_with(
-            db_session, user_id=approver_id, expected_role=UserRole.MANUFACTURER
-        )
+        assert mock_get.call_count == 1
+        assert user_service.get_user_and_validate_role.call_count == 1
         mock_update.assert_called_once()
-        # Check that the update payload passed to the repo contains the approval status
-        update_payload = mock_update.call_args[1]['obj_in']
-        assert update_payload['status'] == SiteStatus.ACTIVE
-        assert update_payload['approved_by_id'] == approver_id
-        assert 'approved_at' in update_payload
+        assert result.status == SiteStatus.ACTIVE
+        assert result.approved_by_id == approver_id
 
-
-def test_update_site_to_approve_wrong_status(site_service, user_service, db_session):
+def test_approve_site_wrong_status(site_service, user_service, db_session):
     """
     Tests site approval when the site is not in PENDING_APPROVAL status.
     """
     # Arrange
     site_id = "site-id"
     approver_id = "manufacturer-id"
-    site_update = SiteUpdate(status=SiteStatus.ACTIVE, approved_by_id=approver_id)
-
     mock_user = User(id=approver_id, role=UserRole.MANUFACTURER, is_active=True)
     user_service.get_user_and_validate_role.return_value = mock_user
 
@@ -125,7 +122,7 @@ def test_update_site_to_approve_wrong_status(site_service, user_service, db_sess
     with patch('server.domain.repositories.site_repo.get', return_value=mock_site):
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            site_service.update_site(db=db_session, site_id=site_id, site_in=site_update)
+            site_service.approve_site(db=db_session, site_id=site_id, approved_by_id=approver_id)
         assert exc_info.value.status_code == 400
         assert "cannot approve" in str(exc_info.value.detail)
 

@@ -1,4 +1,5 @@
 import { useWorkflowStore } from '../state/workflowStore';
+import { prepareSessions } from '../steps/A1_prepareSessions';
 import { createSite } from '../steps/B1_createSite';
 import { approveSite } from '../steps/B2_approveSite';
 import { listOwnerCranes } from '../steps/C1_listOwnerCranes';
@@ -13,7 +14,12 @@ export async function runMainWorkflow() {
     const { actions, context } = useWorkflowStore.getState();
 
     try {
-        const stepInput = { context, actions };
+        // A1: Prepare sessions by logging in all roles
+        const { users } = await prepareSessions({ context, actions });
+        actions.updateContext({ users });
+
+        // The context is updated, so we need to get the new state for subsequent steps
+        const stepInput = { context: useWorkflowStore.getState().context, actions };
 
         const { siteId } = await createSite(stepInput);
         actions.updateContext({ siteId });
