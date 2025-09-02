@@ -31,7 +31,7 @@ export async function assignDriver(input: AssignDriverInput): Promise<AssignDriv
 
   const response = await apiAdapter.post(
     'OWNER',
-    '/driver-assignments',
+    '/assignments/driver',
     assignDriverData
   );
 

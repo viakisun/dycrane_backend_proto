@@ -32,7 +32,7 @@ export async function submitDocument(
 
   const response = await apiAdapter.post(
     'DRIVER',
-    '/document-items',
+    '/docs/items/submit',
     docSubmitData
   );
 
