@@ -6,14 +6,14 @@ from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from server.domain.models import (
+    DriverAttendance,
     Base,
     Crane,
     CraneModel,
     DriverAssignment,
-    DriverAttendance,
     DriverDocumentItem,
     DriverDocumentRequest,
     Site,
@@ -24,8 +24,6 @@ from server.domain.schemas import (
     AttendanceCreate,
     AttendanceUpdate,
     CraneCreate,
-    CraneModelCreate,
-    CraneModelUpdate,
     CraneStatus,
     CraneUpdate,
     DocumentItemCreate,
@@ -40,6 +38,8 @@ from server.domain.schemas import (
     SiteUpdate,
     UserCreate,
     UserUpdate,
+    CraneModelCreate,
+    CraneModelUpdate,
 )
 
 # Define custom types for SQLAlchemy models and Pydantic schemas
@@ -99,9 +99,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         logger.debug(
             f"Getting multiple {self.model.__name__} with skip: {skip}, limit: {limit}"
         )
-        return cast(
-            List[ModelType], db.query(self.model).offset(skip).limit(limit).all()
-        )
+        return cast(List[ModelType], db.query(self.model).offset(skip).limit(limit).all())
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         """
@@ -122,7 +120,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             db.commit()
             db.refresh(db_obj)
             logger.info(f"Created new {self.model.__name__} with id: {db_obj.id}")
-            return cast(ModelType, db_obj)
+            return db_obj
         except SQLAlchemyError as e:
             db.rollback()
             logger.error(f"Database error on create: {e}")
@@ -216,21 +214,23 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         return cast(Optional[User], db.query(User).filter(User.email == email).first())
 
 
-
+from sqlalchemy.orm import joinedload
 
 class CraneRepository(BaseRepository[Crane, CraneCreate, CraneUpdate]):
     def get_by_owner(
         self,
         db: Session,
         *,
-        owner_org_id: Optional[str] = None,
+        owner_org_id: str,
         status: Optional[CraneStatus] = None,
         model_name: Optional[str] = None,
         min_capacity: Optional[int] = None,
     ) -> List[Crane]:
-        query = db.query(Crane).options(joinedload(Crane.model))
-        if owner_org_id:
-            query = query.filter(Crane.owner_org_id == owner_org_id)
+        query = (
+            db.query(Crane)
+            .options(joinedload(Crane.model))
+            .filter(Crane.owner_org_id == owner_org_id)
+        )
         if status:
             query = query.filter(Crane.status == status)
         if model_name:
@@ -259,7 +259,9 @@ class DriverAssignmentRepository(
 
 
 class DocumentRequestRepository(
-    BaseRepository[DriverDocumentRequest, DocumentRequestCreate, DocumentRequestUpdate]
+    BaseRepository[
+        DriverDocumentRequest, DocumentRequestCreate, DocumentRequestUpdate
+    ]
 ):
     pass
 
@@ -276,9 +278,7 @@ class AttendanceRepository(
     pass
 
 
-class CraneModelRepository(
-    BaseRepository[CraneModel, CraneModelCreate, CraneModelUpdate]
-):
+class CraneModelRepository(BaseRepository[CraneModel, CraneModelCreate, CraneModelUpdate]):
     pass
 
 

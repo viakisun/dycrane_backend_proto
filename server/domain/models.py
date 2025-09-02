@@ -3,27 +3,22 @@ SQLAlchemy models for DY Crane Safety Management System.
 Defines all database tables and their relationships in the ops schema.
 """
 
-import datetime as dt
 import uuid
-from decimal import Decimal
-from typing import Any, List
 
 from sqlalchemy import (
-    JSON,
     Boolean,
+    Column,
     Date,
     DateTime,
     Enum,
     ForeignKey,
     Integer,
-    Numeric,
     String,
     Text,
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import relationship
 
 from server.database import Base
 from server.domain.schemas import (
@@ -41,10 +36,8 @@ from server.domain.schemas import (
 class TimestampMixin:
     """Mixin for automatic timestamp management."""
 
-    created_at: Mapped[dt.datetime] = mapped_column(
-        DateTime, default=func.now(), nullable=False
-    )
-    updated_at: Mapped[dt.datetime] = mapped_column(
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(
         DateTime, default=func.now(), onupdate=func.now(), nullable=False
     )
 
@@ -55,14 +48,12 @@ class User(Base, TimestampMixin):
     __tablename__ = "users"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    email: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False, index=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String, unique=True, nullable=False, index=True)
+    name = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    role = Column(Enum(UserRole), nullable=False, index=True)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"
@@ -74,11 +65,9 @@ class Org(Base, TimestampMixin):
     __tablename__ = "orgs"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    type: Mapped[OrgType] = mapped_column(Enum(OrgType), nullable=False, index=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    type = Column(Enum(OrgType), nullable=False, index=True)
 
     def __repr__(self) -> str:
         return f"<Org(id={self.id}, name={self.name}, type={self.type})>"
@@ -90,10 +79,10 @@ class UserOrg(Base):
     __tablename__ = "user_orgs"
     __table_args__ = {"schema": "ops"}
 
-    user_id: Mapped[str] = mapped_column(
+    user_id = Column(
         String, ForeignKey("ops.users.id", ondelete="CASCADE"), primary_key=True
     )
-    org_id: Mapped[str] = mapped_column(
+    org_id = Column(
         String, ForeignKey("ops.orgs.id", ondelete="CASCADE"), primary_key=True
     )
 
@@ -104,38 +93,34 @@ class Site(Base, TimestampMixin):
     __tablename__ = "sites"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    address: Mapped[str | None] = mapped_column(String)
-    start_date: Mapped[dt.date] = mapped_column(Date, nullable=False)
-    end_date: Mapped[dt.date] = mapped_column(Date, nullable=False)
-    status: Mapped[SiteStatus] = mapped_column(
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    address = Column(String)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    status = Column(
         Enum(SiteStatus),
         default=SiteStatus.PENDING_APPROVAL,
         nullable=False,
         index=True,
     )
-    requested_by_id: Mapped[str] = mapped_column(
+    requested_by_id = Column(
         String, ForeignKey("ops.users.id", ondelete="RESTRICT"), nullable=False
     )
-    approved_by_id: Mapped[str | None] = mapped_column(
-        String, ForeignKey("ops.users.id", ondelete="SET NULL")
-    )
-    requested_at: Mapped[dt.datetime] = mapped_column(
-        DateTime, default=func.now(), nullable=False
-    )
-    approved_at: Mapped[dt.datetime | None] = mapped_column(DateTime)
+    approved_by_id = Column(String, ForeignKey("ops.users.id", ondelete="SET NULL"))
+    requested_at = Column(DateTime, default=func.now(), nullable=False)
+    approved_at = Column(DateTime)
 
     def __repr__(self) -> str:
         return f"<Site(id={self.id}, name={self.name}, status={self.status})>"
 
 
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY
+from sqlalchemy import Numeric, JSON
 
 # Use JSON for SQLite and JSONB for other dialects like PostgreSQL
-JsonVariant = JSON().with_variant(JSONB, "postgresql")
-ArrayVariant = JSON().with_variant(ARRAY(String), "postgresql")
+JsonVariant = JSON().with_variant(JSONB, 'postgresql')
+ArrayVariant = JSON().with_variant(ARRAY(String), 'postgresql')
 
 
 class CraneModel(Base, TimestampMixin):
@@ -144,21 +129,17 @@ class CraneModel(Base, TimestampMixin):
     __tablename__ = "crane_models"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    model_name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    max_lifting_capacity_ton_m: Mapped[int | None] = mapped_column(Integer)
-    max_working_height_m: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
-    max_working_radius_m: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
-    iver_torque_phi_mm: Mapped[str | None] = mapped_column(String)
-    boom_sections: Mapped[int | None] = mapped_column(Integer)
-    tele_speed_m_sec: Mapped[str | None] = mapped_column(String)
-    boom_angle_speed_deg_sec: Mapped[str | None] = mapped_column(String)
-    lifting_load_distance_kg_m: Mapped[dict[str, Any] | None] = mapped_column(
-        JsonVariant
-    )
-    optional_specs: Mapped[List[str] | None] = mapped_column(ArrayVariant)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    model_name = Column(String, nullable=False, unique=True)
+    max_lifting_capacity_ton_m = Column(Integer)
+    max_working_height_m = Column(Numeric(5, 2))
+    max_working_radius_m = Column(Numeric(5, 2))
+    iver_torque_phi_mm = Column(String)
+    boom_sections = Column(Integer)
+    tele_speed_m_sec = Column(String)
+    boom_angle_speed_deg_sec = Column(String)
+    lifting_load_distance_kg_m = Column(JsonVariant)
+    optional_specs = Column(ArrayVariant)
 
     def __repr__(self) -> str:
         return f"<CraneModel(id={self.id}, model_name={self.model_name})>"
@@ -170,32 +151,28 @@ class Crane(Base, TimestampMixin):
     __tablename__ = "cranes"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    owner_org_id: Mapped[str] = mapped_column(
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    owner_org_id = Column(
         String,
         ForeignKey("ops.orgs.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
-    model_id: Mapped[str] = mapped_column(
+    model_id = Column(
         String,
         ForeignKey("ops.crane_models.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
-    serial_no: Mapped[str | None] = mapped_column(String, unique=True)
-    status: Mapped[CraneStatus] = mapped_column(
+    serial_no = Column(String, unique=True)
+    status = Column(
         Enum(CraneStatus), default=CraneStatus.NORMAL, nullable=False, index=True
     )
 
-    model: Mapped["CraneModel"] = relationship("CraneModel")
+    model = relationship("CraneModel")
 
     def __repr__(self) -> str:
-        return (
-            f"<Crane(id={self.id}, serial_no={self.serial_no}, status={self.status})>"
-        )
+        return f"<Crane(id={self.id}, serial_no={self.serial_no}, status={self.status})>"
 
 
 class SiteCraneAssignment(Base, TimestampMixin):
@@ -204,27 +181,25 @@ class SiteCraneAssignment(Base, TimestampMixin):
     __tablename__ = "site_crane_assignments"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    site_id: Mapped[str] = mapped_column(
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    site_id = Column(
         String,
         ForeignKey("ops.sites.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    crane_id: Mapped[str] = mapped_column(
+    crane_id = Column(
         String,
         ForeignKey("ops.cranes.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
-    assigned_by: Mapped[str] = mapped_column(
+    assigned_by = Column(
         String, ForeignKey("ops.users.id", ondelete="RESTRICT"), nullable=False
     )
-    start_date: Mapped[dt.date] = mapped_column(Date, nullable=False)
-    end_date: Mapped[dt.date | None] = mapped_column(Date)
-    status: Mapped[AssignmentStatus] = mapped_column(
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date)
+    status = Column(
         Enum(AssignmentStatus), default=AssignmentStatus.ASSIGNED, nullable=False
     )
 
@@ -241,24 +216,22 @@ class DriverAssignment(Base, TimestampMixin):
     __tablename__ = "driver_assignments"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    site_crane_id: Mapped[str] = mapped_column(
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    site_crane_id = Column(
         String,
         ForeignKey("ops.site_crane_assignments.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    driver_id: Mapped[str] = mapped_column(
+    driver_id = Column(
         String,
         ForeignKey("ops.users.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
-    start_date: Mapped[dt.date] = mapped_column(Date, nullable=False)
-    end_date: Mapped[dt.date | None] = mapped_column(Date)
-    status: Mapped[AssignmentStatus] = mapped_column(
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date)
+    status = Column(
         Enum(AssignmentStatus), default=AssignmentStatus.ASSIGNED, nullable=False
     )
 
@@ -280,17 +253,15 @@ class DriverAttendance(Base, TimestampMixin):
         {"schema": "ops"},
     )
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    driver_assignment_id: Mapped[str] = mapped_column(
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    driver_assignment_id = Column(
         String,
         ForeignKey("ops.driver_assignments.id", ondelete="CASCADE"),
         nullable=False,
     )
-    work_date: Mapped[dt.date] = mapped_column(Date, nullable=False)
-    check_in_at: Mapped[dt.datetime] = mapped_column(DateTime, nullable=False)
-    check_out_at: Mapped[dt.datetime | None] = mapped_column(DateTime)
+    work_date = Column(Date, nullable=False)
+    check_in_at = Column(DateTime, nullable=False)
+    check_out_at = Column(DateTime)
 
     def __repr__(self) -> str:
         return f"<DriverAttendance(id={self.id}, work_date={self.work_date})>"
@@ -302,25 +273,23 @@ class DriverDocumentRequest(Base, TimestampMixin):
     __tablename__ = "driver_document_requests"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    site_id: Mapped[str] = mapped_column(
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    site_id = Column(
         String,
         ForeignKey("ops.sites.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    driver_id: Mapped[str] = mapped_column(
+    driver_id = Column(
         String,
         ForeignKey("ops.users.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
-    requested_by_id: Mapped[str] = mapped_column(
+    requested_by_id = Column(
         String, ForeignKey("ops.users.id", ondelete="RESTRICT"), nullable=False
     )
-    due_date: Mapped[dt.date | None] = mapped_column(Date)
+    due_date = Column(Date)
 
     def __repr__(self) -> str:
         return f"<DriverDocumentRequest(id={self.id}, driver_id={self.driver_id})>"
@@ -332,25 +301,21 @@ class DriverDocumentItem(Base, TimestampMixin):
     __tablename__ = "driver_document_items"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    request_id: Mapped[str] = mapped_column(
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    request_id = Column(
         String,
         ForeignKey("ops.driver_document_requests.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    doc_type: Mapped[str] = mapped_column(String, nullable=False)
-    file_url: Mapped[str | None] = mapped_column(Text)
-    status: Mapped[DocItemStatus] = mapped_column(
+    doc_type = Column(String, nullable=False)
+    file_url = Column(Text)
+    status = Column(
         Enum(DocItemStatus), default=DocItemStatus.PENDING, nullable=False, index=True
     )
-    reviewer_id: Mapped[str | None] = mapped_column(
-        String, ForeignKey("ops.users.id", ondelete="SET NULL")
-    )
-    submitted_at: Mapped[dt.datetime | None] = mapped_column(DateTime)
-    reviewed_at: Mapped[dt.datetime | None] = mapped_column(DateTime)
+    reviewer_id = Column(String, ForeignKey("ops.users.id", ondelete="SET NULL"))
+    submitted_at = Column(DateTime)
+    reviewed_at = Column(DateTime)
 
     def __repr__(self) -> str:
         return (
@@ -365,26 +330,20 @@ class Request(Base, TimestampMixin):
     __tablename__ = "requests"
     __table_args__ = {"schema": "ops"}
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    type: Mapped[RequestType] = mapped_column(Enum(RequestType), nullable=False)
-    status: Mapped[RequestStatus] = mapped_column(
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    type = Column(Enum(RequestType), nullable=False)
+    status = Column(
         Enum(RequestStatus), default=RequestStatus.PENDING, nullable=False, index=True
     )
-    requester_id: Mapped[str] = mapped_column(
+    requester_id = Column(
         String, ForeignKey("ops.users.id", ondelete="CASCADE"), nullable=False
     )
-    approver_id: Mapped[str | None] = mapped_column(
-        String, ForeignKey("ops.users.id", ondelete="SET NULL")
-    )
-    target_entity_id: Mapped[str | None] = mapped_column(String, index=True)
-    related_entity_id: Mapped[str | None] = mapped_column(String, index=True)
-    notes: Mapped[str | None] = mapped_column(Text)
-    requested_at: Mapped[dt.datetime] = mapped_column(
-        DateTime, default=func.now(), nullable=False
-    )
-    responded_at: Mapped[dt.datetime | None] = mapped_column(DateTime)
+    approver_id = Column(String, ForeignKey("ops.users.id", ondelete="SET NULL"))
+    target_entity_id = Column(String, index=True)
+    related_entity_id = Column(String, index=True)
+    notes = Column(Text)
+    requested_at = Column(DateTime, default=func.now(), nullable=False)
+    responded_at = Column(DateTime)
 
     def __repr__(self) -> str:
         return f"<Request(id={self.id}, type={self.type}, status={self.status})>"

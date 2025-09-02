@@ -2,7 +2,6 @@ import datetime as dt
 import logging
 
 from fastapi import HTTPException, status
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from server.domain.models import DriverAssignment, SiteCraneAssignment
@@ -17,7 +16,6 @@ from server.domain.schemas import (
     SiteCraneAssignmentCreate,
     UserRole,
 )
-
 from .user_service import UserService, user_service
 
 logger = logging.getLogger(__name__)
@@ -40,23 +38,17 @@ class AssignmentService:
             db.query(SiteCraneAssignment)
             .filter(
                 SiteCraneAssignment.crane_id == assignment_in.crane_id,
-                assignment_in.start_date
-                <= func.coalesce(SiteCraneAssignment.end_date, dt.date.max),
-                (assignment_in.end_date or dt.date.max)
-                >= SiteCraneAssignment.start_date,
+                assignment_in.start_date <= (SiteCraneAssignment.end_date or dt.date.max),
+                (assignment_in.end_date or dt.date.max) >= SiteCraneAssignment.start_date,
             )
             .first()
         )
 
         if overlapping_assignment:
-            message = (
-                f"Crane {assignment_in.crane_id} is already assigned "
-                "during the requested period."
-            )
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail={
-                    "message": message,
+                    "message": f"Crane {assignment_in.crane_id} is already assigned during the requested period.",
                     "assignment_id": overlapping_assignment.id,
                 },
             )

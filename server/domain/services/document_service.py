@@ -16,7 +16,6 @@ from server.domain.schemas import (
     DocumentRequestCreate,
     UserRole,
 )
-
 from .user_service import UserService, user_service
 
 logger = logging.getLogger(__name__)
