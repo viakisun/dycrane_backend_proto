@@ -1,6 +1,6 @@
 import { apiAdapter } from '../transport/apiAdapter';
 import { StepInput, runStep } from './types';
-import { SiteStatus } from '../workflow-def';
+import { SiteStatus } from './enums';
 
 type ApproveSiteInput = StepInput & {
   siteId: string;

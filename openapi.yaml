@@ -1,704 +1,314 @@
-components:
-  schemas:
-    AssignCraneIn:
-      description: Schema for assigning a crane to a site.
-      properties:
-        crane_id:
-          description: Crane to assign
-          title: Crane Id
-          type: string
-        end_date:
-          anyOf:
-          - format: date
-            type: string
-          - type: 'null'
-          description: Assignment end date
-          title: End Date
-        safety_manager_id:
-          description: SAFETY_MANAGER user ID
-          title: Safety Manager Id
-          type: string
-        site_id:
-          description: Target site ID
-          title: Site Id
-          type: string
-        start_date:
-          description: Assignment start date
-          format: date
-          title: Start Date
-          type: string
-      required:
-      - site_id
-      - crane_id
-      - safety_manager_id
-      - start_date
-      title: AssignCraneIn
-      type: object
-    AssignDriverIn:
-      description: Schema for assigning a driver to a site-crane combination.
-      properties:
-        driver_id:
-          description: DRIVER user ID
-          title: Driver Id
-          type: string
-        end_date:
-          anyOf:
-          - format: date
-            type: string
-          - type: 'null'
-          description: Driver assignment end date
-          title: End Date
-        site_crane_id:
-          description: Site-crane assignment ID
-          title: Site Crane Id
-          type: string
-        start_date:
-          description: Driver assignment start date
-          format: date
-          title: Start Date
-          type: string
-      required:
-      - site_crane_id
-      - driver_id
-      - start_date
-      title: AssignDriverIn
-      type: object
-    AssignmentResponse:
-      description: Schema for crane assignment operation responses.
-      properties:
-        assignment_id:
-          description: Created assignment ID
-          title: Assignment Id
-          type: string
-      required:
-      - assignment_id
-      title: AssignmentResponse
-      type: object
-    AttendanceIn:
-      description: Schema for recording driver attendance.
-      properties:
-        check_in_at:
-          description: Check-in timestamp
-          format: date-time
-          title: Check In At
-          type: string
-        check_out_at:
-          anyOf:
-          - format: date-time
-            type: string
-          - type: 'null'
-          description: Check-out timestamp
-          title: Check Out At
-        driver_assignment_id:
-          description: Driver assignment ID
-          title: Driver Assignment Id
-          type: string
-        work_date:
-          description: Work date
-          format: date
-          title: Work Date
-          type: string
-      required:
-      - driver_assignment_id
-      - work_date
-      - check_in_at
-      title: AttendanceIn
-      type: object
-    AttendanceResponse:
-      description: Schema for attendance recording responses.
-      properties:
-        attendance_id:
-          description: Created attendance record ID
-          title: Attendance Id
-          type: string
-      required:
-      - attendance_id
-      title: AttendanceResponse
-      type: object
-    CraneModelOut:
-      description: Schema for crane model specifications in API responses.
-      properties:
-        id:
-          title: Id
-          type: string
-        max_lifting_capacity_ton_m:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Max Lifting Capacity Ton M
-        max_working_height_m:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Max Working Height M
-        max_working_radius_m:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Max Working Radius M
-        model_name:
-          title: Model Name
-          type: string
-        optional_specs:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Optional Specs
-      required:
-      - id
-      - model_name
-      title: CraneModelOut
-      type: object
-    CraneOut:
-      description: Schema for crane information in API responses.
-      properties:
-        created_at:
-          format: date-time
-          title: Created At
-          type: string
-        id:
-          title: Id
-          type: string
-        model:
-          $ref: '#/components/schemas/CraneModelOut'
-        owner_org_id:
-          title: Owner Org Id
-          type: string
-        serial_no:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Serial No
-        status:
-          $ref: '#/components/schemas/CraneStatus'
-        updated_at:
-          format: date-time
-          title: Updated At
-          type: string
-      required:
-      - id
-      - owner_org_id
-      - status
-      - model
-      - created_at
-      - updated_at
-      title: CraneOut
-      type: object
-    CraneStatus:
-      description: Crane operational status values.
-      enum:
-      - NORMAL
-      - REPAIR
-      - INBOUND
-      title: CraneStatus
-      type: string
-    DocItemResponse:
-      description: Schema for document review responses.
-      properties:
-        item_id:
-          description: Document item ID
-          title: Item Id
-          type: string
-        status:
-          $ref: '#/components/schemas/DocItemStatus'
-          description: Current document status
-      required:
-      - item_id
-      - status
-      title: DocItemResponse
-      type: object
-    DocItemReviewIn:
-      description: Schema for reviewing a document item.
-      properties:
-        approve:
-          description: True to approve, False to reject
-          title: Approve
-          type: boolean
-        item_id:
-          description: Document item ID
-          title: Item Id
-          type: string
-        reviewer_id:
-          description: SAFETY_MANAGER user ID
-          title: Reviewer Id
-          type: string
-      required:
-      - item_id
-      - reviewer_id
-      - approve
-      title: DocItemReviewIn
-      type: object
-    DocItemStatus:
-      description: Document item review status.
-      enum:
-      - PENDING
-      - SUBMITTED
-      - APPROVED
-      - REJECTED
-      title: DocItemStatus
-      type: string
-    DocItemSubmitIn:
-      description: Schema for submitting a document item.
-      properties:
-        doc_type:
-          description: Document type
-          minLength: 1
-          title: Doc Type
-          type: string
-        file_url:
-          description: HTTPS URL to document file
-          format: uri
-          minLength: 1
-          title: File Url
-          type: string
-        request_id:
-          description: Document request ID
-          title: Request Id
-          type: string
-      required:
-      - request_id
-      - doc_type
-      - file_url
-      title: DocItemSubmitIn
-      type: object
-    DocRequestIn:
-      description: Schema for creating a document request.
-      properties:
-        driver_id:
-          description: Driver user ID
-          title: Driver Id
-          type: string
-        due_date:
-          anyOf:
-          - format: date
-            type: string
-          - type: 'null'
-          description: Document submission due date
-          title: Due Date
-        requested_by_id:
-          description: SAFETY_MANAGER user ID
-          title: Requested By Id
-          type: string
-        site_id:
-          description: Site ID
-          title: Site Id
-          type: string
-      required:
-      - site_id
-      - driver_id
-      - requested_by_id
-      title: DocRequestIn
-      type: object
-    DocRequestResponse:
-      description: Schema for document request creation responses.
-      properties:
-        request_id:
-          description: Created document request ID
-          title: Request Id
-          type: string
-      required:
-      - request_id
-      title: DocRequestResponse
-      type: object
-    DocSubmitResponse:
-      description: Schema for document submission responses.
-      properties:
-        item_id:
-          description: Created document item ID
-          title: Item Id
-          type: string
-      required:
-      - item_id
-      title: DocSubmitResponse
-      type: object
-    DriverAssignmentResponse:
-      description: Schema for driver assignment operation responses.
-      properties:
-        driver_assignment_id:
-          description: Created driver assignment ID
-          title: Driver Assignment Id
-          type: string
-      required:
-      - driver_assignment_id
-      title: DriverAssignmentResponse
-      type: object
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          title: Detail
-          type: array
-      title: HTTPValidationError
-      type: object
-    HealthCheckResponse:
-      description: Schema for health check endpoint response.
-      properties:
-        database_healthy:
-          description: Database connectivity status
-          title: Database Healthy
-          type: boolean
-        status:
-          description: Service status
-          title: Status
-          type: string
-        timestamp:
-          description: Current server time
-          format: date-time
-          title: Timestamp
-          type: string
-      required:
-      - status
-      - timestamp
-      - database_healthy
-      title: HealthCheckResponse
-      type: object
-    OwnerStatsOut:
-      description: Schema for an owner organization with crane fleet statistics.
-      properties:
-        available_cranes:
-          title: Available Cranes
-          type: integer
-        id:
-          title: Id
-          type: string
-        name:
-          title: Name
-          type: string
-        total_cranes:
-          title: Total Cranes
-          type: integer
-      required:
-      - id
-      - name
-      - total_cranes
-      - available_cranes
-      title: OwnerStatsOut
-      type: object
-    RequestCreate:
-      description: Schema for creating a generic request.
-      properties:
-        notes:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Notes
-        related_entity_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Related Entity Id
-        requester_id:
-          title: Requester Id
-          type: string
-        target_entity_id:
-          title: Target Entity Id
-          type: string
-        type:
-          $ref: '#/components/schemas/RequestType'
-      required:
-      - type
-      - requester_id
-      - target_entity_id
-      title: RequestCreate
-      type: object
-    RequestOut:
-      description: Schema for request information in API responses.
-      properties:
-        approver_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Approver Id
-        id:
-          title: Id
-          type: string
-        notes:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Notes
-        related_entity_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Related Entity Id
-        requested_at:
-          format: date-time
-          title: Requested At
-          type: string
-        requester_id:
-          title: Requester Id
-          type: string
-        responded_at:
-          anyOf:
-          - format: date-time
-            type: string
-          - type: 'null'
-          title: Responded At
-        status:
-          $ref: '#/components/schemas/RequestStatus'
-        target_entity_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Target Entity Id
-        type:
-          $ref: '#/components/schemas/RequestType'
-      required:
-      - id
-      - type
-      - status
-      - requester_id
-      - requested_at
-      title: RequestOut
-      type: object
-    RequestStatus:
-      description: Generic request statuses.
-      enum:
-      - PENDING
-      - APPROVED
-      - REJECTED
-      title: RequestStatus
-      type: string
-    RequestType:
-      description: Generic request types.
-      enum:
-      - CRANE_DEPLOY
-      title: RequestType
-      type: string
-    RequestUpdate:
-      description: Schema for approving or rejecting a request.
-      properties:
-        approver_id:
-          title: Approver Id
-          type: string
-        notes:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Notes
-        status:
-          $ref: '#/components/schemas/RequestStatus'
-      required:
-      - status
-      - approver_id
-      title: RequestUpdate
-      type: object
-    SiteCreate:
-      description: Schema for creating a new construction site.
-      example:
-        address: 123 Main Street, Seoul
-        end_date: '2025-12-31'
-        name: Downtown Construction Site
-        requested_by_id: safety-manager-uuid
-        start_date: '2025-09-01'
-      properties:
-        address:
-          anyOf:
-          - type: string
-          - type: 'null'
-          description: Site address
-          title: Address
-        end_date:
-          description: Project end date
-          format: date
-          title: End Date
-          type: string
-        name:
-          description: Site name
-          maxLength: 255
-          minLength: 1
-          title: Name
-          type: string
-        requested_by_id:
-          description: SAFETY_MANAGER user ID
-          title: Requested By Id
-          type: string
-        start_date:
-          description: Project start date
-          format: date
-          title: Start Date
-          type: string
-      required:
-      - name
-      - start_date
-      - end_date
-      - requested_by_id
-      title: SiteCreate
-      type: object
-    SiteOut:
-      description: Schema for site information in API responses.
-      properties:
-        address:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Address
-        approved_at:
-          anyOf:
-          - format: date-time
-            type: string
-          - type: 'null'
-          title: Approved At
-        approved_by_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Approved By Id
-        created_at:
-          format: date-time
-          title: Created At
-          type: string
-        end_date:
-          format: date
-          title: End Date
-          type: string
-        id:
-          title: Id
-          type: string
-        name:
-          title: Name
-          type: string
-        requested_at:
-          format: date-time
-          title: Requested At
-          type: string
-        requested_by_id:
-          title: Requested By Id
-          type: string
-        start_date:
-          format: date
-          title: Start Date
-          type: string
-        status:
-          $ref: '#/components/schemas/SiteStatus'
-        updated_at:
-          format: date-time
-          title: Updated At
-          type: string
-      required:
-      - id
-      - name
-      - start_date
-      - end_date
-      - status
-      - requested_by_id
-      - requested_at
-      - created_at
-      - updated_at
-      title: SiteOut
-      type: object
-    SiteStatus:
-      description: Construction site status values.
-      enum:
-      - PENDING_APPROVAL
-      - ACTIVE
-      - REJECTED
-      - COMPLETED
-      title: SiteStatus
-      type: string
-    SiteUpdate:
-      description: Schema for updating a site. All fields are optional.
-      properties:
-        address:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Address
-        approved_at:
-          anyOf:
-          - format: date-time
-            type: string
-          - type: 'null'
-          title: Approved At
-        approved_by_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Approved By Id
-        end_date:
-          anyOf:
-          - format: date
-            type: string
-          - type: 'null'
-          title: End Date
-        name:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Name
-        start_date:
-          anyOf:
-          - format: date
-            type: string
-          - type: 'null'
-          title: Start Date
-        status:
-          anyOf:
-          - $ref: '#/components/schemas/SiteStatus'
-          - type: 'null'
-      title: SiteUpdate
-      type: object
-    ValidationError:
-      properties:
-        loc:
-          items:
-            anyOf:
-            - type: string
-            - type: integer
-          title: Location
-          type: array
-        msg:
-          title: Message
-          type: string
-        type:
-          title: Error Type
-          type: string
-      required:
-      - loc
-      - msg
-      - type
-      title: ValidationError
-      type: object
-info:
-  description: Crane safety management system
-  title: DY Crane Safety Management API
-  version: 1.0.0
 openapi: 3.1.0
+info:
+  title: DY Crane Safety Management API
+  description: Crane safety management system
+  version: 1.0.0
 paths:
-  /api/attendances:
-    post:
-      description: Record a new attendance entry for a driver.
-      operationId: create_attendance_endpoint_api_attendances_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AttendanceIn'
-        required: true
+  /api/health/:
+    get:
+      tags:
+        - health
+      summary: Health Check
+      description: Health check endpoint for service monitoring.
+      operationId: health_check_api_health__get
       responses:
-        '201':
+        '200':
+          description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AttendanceResponse'
+                $ref: '#/components/schemas/HealthCheckResponse'
+  /api/health/reset-transactional:
+    post:
+      tags:
+        - health
+      summary: Reset Transactional Data
+      description: "Reset only the transactional data in the database.\nPreserves master data like users, cranes, etc."
+      operationId: reset_transactional_data_api_health_reset_transactional_post
+      responses:
+        '204':
           description: Successful Response
+  /api/health/reset-full:
+    post:
+      tags:
+        - health
+      summary: Reset Full Database For Testing
+      description: "Reset the entire database. FOR DEVELOPMENT/TESTING ONLY.\nWARNING: This is a destructive operation."
+      operationId: reset_full_database_for_testing_api_health_reset_full_post
+      responses:
+        '204':
+          description: Successful Response
+  /api/sites/:
+    post:
+      tags:
+        - sites
+      summary: Create Site
+      description: Create a new construction site.
+      operationId: create_site_api_sites__post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SiteCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteOut'
         '422':
+          description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Create Attendance Endpoint
+    get:
       tags:
-      - attendances
-  /api/crane-assignments:
+        - sites
+      summary: List Sites
+      description: "List all construction sites.\nIf 'mine' is true, returns only sites relevant to the user_id.\nNOTE: In a real app, user_id would come from an auth dependency."
+      operationId: list_sites_api_sites__get
+      parameters:
+        - name: mine
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: boolean
+              - type: 'null'
+            title: Mine
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SiteOut'
+                title: Response List Sites Api Sites  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/sites/{site_id}/approve:
     post:
-      description: Create a new crane assignment to a site.
-      operationId: create_crane_assignment_endpoint_api_crane_assignments_post
+      tags:
+        - sites
+      summary: Approve Site
+      description: Approve a construction site.
+      operationId: approve_site_api_sites__site_id__approve_post
+      parameters:
+        - name: site_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Site Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SiteApprove'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/cranes/{crane_id}/deploy-requests:
+    post:
+      tags:
+        - cranes
+      summary: Create Deployment Request
+      description: "Request a crane to be deployed to a site.\nThis is typically done by a SAFETY_MANAGER."
+      operationId: create_deployment_request_api_cranes__crane_id__deploy_requests_post
+      parameters:
+        - name: crane_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Crane Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/crane-models/:
+    get:
+      tags:
+        - crane-models
+      summary: List Crane Models
+      description: List all crane models with optional filtering.
+      operationId: list_crane_models_api_crane_models__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/CraneModelOut'
+                type: array
+                title: Response List Crane Models Api Crane Models  Get
+  /api/owners/with-stats:
+    get:
+      tags:
+        - owners
+      summary: List Owners With Stats
+      description: List all owners with statistics about their crane fleet.
+      operationId: list_owners_with_stats_api_owners_with_stats_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/OwnerStatsOut'
+                type: array
+                title: Response List Owners With Stats Api Owners With Stats Get
+  /api/owners/{owner_id}/cranes:
+    get:
+      tags:
+        - owners
+      summary: List Owner Cranes
+      description: List all cranes owned by a specific organization, with optional filters.
+      operationId: list_owner_cranes_api_owners__owner_id__cranes_get
+      parameters:
+        - name: owner_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Owner Id
+        - name: status
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - $ref: '#/components/schemas/CraneStatus'
+              - type: 'null'
+            title: Status
+        - name: model_name
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Model Name
+        - name: min_capacity
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: integer
+              - type: 'null'
+            title: Min Capacity
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CraneOut'
+                title: Response List Owner Cranes Api Owners  Owner Id  Cranes Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/owners/me/requests:
+    get:
+      tags:
+        - owners
+      summary: List My Requests
+      description: List requests for the current owner.
+      operationId: list_my_requests_api_owners_me_requests_get
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            title: User Id
+        - name: type
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - $ref: '#/components/schemas/RequestType'
+              - type: 'null'
+            title: Type
+        - name: request_status
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - $ref: '#/components/schemas/RequestStatus'
+              - type: 'null'
+            title: Request Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequestOut'
+                title: Response List My Requests Api Owners Me Requests Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/assignments/crane:
+    post:
+      tags:
+        - assignments
+      summary: Assign Crane
+      operationId: assign_crane_api_assignments_crane_post
       requestBody:
         content:
           application/json:
@@ -707,182 +317,23 @@ paths:
         required: true
       responses:
         '201':
+          description: Successful Response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignmentResponse'
-          description: Successful Response
         '422':
+          description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Create Crane Assignment Endpoint
-      tags:
-      - crane-assignments
-  /api/crane-models:
-    get:
-      description: List all crane models.
-      operationId: list_crane_models_endpoint_api_crane_models_get
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/CraneModelOut'
-                title: Response List Crane Models Endpoint Api Crane Models Get
-                type: array
-          description: Successful Response
-      summary: List Crane Models Endpoint
-      tags:
-      - crane-models
-  /api/cranes:
-    get:
-      description: List all cranes with optional filtering.
-      operationId: list_cranes_endpoint_api_cranes_get
-      parameters:
-      - in: query
-        name: owner_org_id
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Owner Org Id
-      - in: query
-        name: status
-        required: false
-        schema:
-          anyOf:
-          - $ref: '#/components/schemas/CraneStatus'
-          - type: 'null'
-          title: Status
-      - in: query
-        name: model_name
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Model Name
-      - in: query
-        name: min_capacity
-        required: false
-        schema:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Min Capacity
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/CraneOut'
-                title: Response List Cranes Endpoint Api Cranes Get
-                type: array
-          description: Successful Response
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: List Cranes Endpoint
-      tags:
-      - cranes
-  /api/document-items:
+  /api/assignments/driver:
     post:
-      description: Submit a new document item.
-      operationId: submit_document_item_endpoint_api_document_items_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DocItemSubmitIn'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocSubmitResponse'
-          description: Successful Response
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Submit Document Item Endpoint
       tags:
-      - document-items
-  /api/document-items/{item_id}:
-    patch:
-      description: Review (approve or reject) a document item.
-      operationId: review_document_item_endpoint_api_document_items__item_id__patch
-      parameters:
-      - in: path
-        name: item_id
-        required: true
-        schema:
-          title: Item Id
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DocItemReviewIn'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocItemResponse'
-          description: Successful Response
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Review Document Item Endpoint
-      tags:
-      - document-items
-  /api/document-requests:
-    post:
-      description: Request a document from a driver.
-      operationId: create_document_request_endpoint_api_document_requests_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DocRequestIn'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocRequestResponse'
-          description: Successful Response
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Create Document Request Endpoint
-      tags:
-      - document-requests
-  /api/driver-assignments:
-    post:
-      description: Assign a driver to a site-crane combination.
-      operationId: create_driver_assignment_endpoint_api_driver_assignments_post
+        - assignments
+      summary: Assign Driver
+      operationId: assign_driver_api_assignments_driver_post
       requestBody:
         content:
           application/json:
@@ -891,338 +342,783 @@ paths:
         required: true
       responses:
         '201':
+          description: Successful Response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DriverAssignmentResponse'
-          description: Successful Response
         '422':
+          description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Create Driver Assignment Endpoint
-      tags:
-      - driver-assignments
-  /api/health/:
-    get:
-      description: Health check endpoint for service monitoring.
-      operationId: health_check_endpoint_api_health__get
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthCheckResponse'
-          description: Successful Response
-      summary: Health Check Endpoint
-      tags:
-      - health
-  /api/health/reset-full:
+  /api/assignments/attendance:
     post:
-      description: 'Reset the entire database. FOR DEVELOPMENT/TESTING ONLY.
-
-        WARNING: This is a destructive operation.'
-      operationId: reset_full_database_for_testing_endpoint_api_health_reset_full_post
-      responses:
-        '204':
-          description: Successful Response
-      summary: Reset Full Database For Testing Endpoint
       tags:
-      - health
-  /api/health/reset-transactional:
-    post:
-      description: 'Reset only the transactional data in the database.
-
-        Preserves master data like users, cranes, etc.'
-      operationId: reset_transactional_data_endpoint_api_health_reset_transactional_post
-      responses:
-        '204':
-          description: Successful Response
-      summary: Reset Transactional Data Endpoint
-      tags:
-      - health
-  /api/owners/me/requests:
-    get:
-      description: List requests for the current owner.
-      operationId: list_my_requests_endpoint_api_owners_me_requests_get
-      parameters:
-      - in: query
-        name: user_id
-        required: true
-        schema:
-          title: User Id
-          type: string
-      - in: query
-        name: type
-        required: false
-        schema:
-          anyOf:
-          - $ref: '#/components/schemas/RequestType'
-          - type: 'null'
-          title: Type
-      - in: query
-        name: request_status
-        required: false
-        schema:
-          anyOf:
-          - $ref: '#/components/schemas/RequestStatus'
-          - type: 'null'
-          title: Request Status
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/RequestOut'
-                title: Response List My Requests Endpoint Api Owners Me Requests Get
-                type: array
-          description: Successful Response
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: List My Requests Endpoint
-      tags:
-      - owners
-  /api/owners/with-stats:
-    get:
-      description: List all owners with statistics about their crane fleet.
-      operationId: list_owners_with_stats_endpoint_api_owners_with_stats_get
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/OwnerStatsOut'
-                title: Response List Owners With Stats Endpoint Api Owners With Stats
-                  Get
-                type: array
-          description: Successful Response
-      summary: List Owners With Stats Endpoint
-      tags:
-      - owners
-  /api/owners/{owner_id}/cranes:
-    get:
-      description: List all cranes owned by a specific organization, with optional
-        filters.
-      operationId: list_owner_cranes_endpoint_api_owners__owner_id__cranes_get
-      parameters:
-      - in: path
-        name: owner_id
-        required: true
-        schema:
-          title: Owner Id
-          type: string
-      - in: query
-        name: status
-        required: false
-        schema:
-          anyOf:
-          - $ref: '#/components/schemas/CraneStatus'
-          - type: 'null'
-          title: Status
-      - in: query
-        name: model_name
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Model Name
-      - in: query
-        name: min_capacity
-        required: false
-        schema:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Min Capacity
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/CraneOut'
-                title: Response List Owner Cranes Endpoint Api Owners  Owner Id  Cranes
-                  Get
-                type: array
-          description: Successful Response
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: List Owner Cranes Endpoint
-      tags:
-      - owners
-  /api/requests:
-    post:
-      description: Create a new request, e.g. for crane deployment.
-      operationId: create_request_endpoint_api_requests_post
+        - assignments
+      summary: Record Attendance
+      operationId: record_attendance_api_assignments_attendance_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RequestCreate'
+              $ref: '#/components/schemas/AttendanceIn'
         required: true
       responses:
         '201':
+          description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestOut'
-          description: Successful Response
+                $ref: '#/components/schemas/AttendanceResponse'
         '422':
+          description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Create Request Endpoint
+  /api/docs/requests:
+    post:
       tags:
-      - requests
+        - documents
+      summary: Create Document Request
+      operationId: create_document_request_api_docs_requests_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocRequestIn'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocRequestResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/docs/items/submit:
+    post:
+      tags:
+        - documents
+      summary: Submit Document Item
+      operationId: submit_document_item_api_docs_items_submit_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocItemSubmitIn'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocSubmitResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/docs/items/review:
+    post:
+      tags:
+        - documents
+      summary: Review Document Item
+      operationId: review_document_item_api_docs_items_review_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocItemReviewIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocItemResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/requests/{request_id}/respond:
     post:
-      description: 'Approve or reject a deployment request.
-
-        This is typically done by an OWNER.'
-      operationId: respond_to_request_endpoint_api_requests__request_id__respond_post
+      tags:
+        - requests
+      summary: Respond To Deployment Request
+      description: "Approve or reject a deployment request.\nThis is typically done by an OWNER."
+      operationId: respond_to_deployment_request_api_requests__request_id__respond_post
       parameters:
-      - in: path
-        name: request_id
-        required: true
-        schema:
-          title: Request Id
-          type: string
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Request Id
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RequestUpdate'
-        required: true
       responses:
         '200':
+          description: Successful Response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RequestOut'
-          description: Successful Response
         '422':
+          description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Respond To Request Endpoint
-      tags:
-      - requests
-  /api/sites:
-    get:
-      description: 'List all construction sites.
-
-        If ''mine'' is true, returns only sites relevant to the user_id.
-
-        NOTE: In a real app, user_id would come from an auth dependency.'
-      operationId: list_sites_endpoint_api_sites_get
-      parameters:
-      - in: query
-        name: mine
-        required: false
-        schema:
-          anyOf:
-          - type: boolean
-          - type: 'null'
-          title: Mine
-      - in: query
-        name: user_id
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: User Id
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/SiteOut'
-                title: Response List Sites Endpoint Api Sites Get
-                type: array
-          description: Successful Response
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: List Sites Endpoint
-      tags:
-      - sites
-    post:
-      description: Create a new construction site.
-      operationId: create_site_endpoint_api_sites_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SiteCreate'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SiteOut'
-          description: Successful Response
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Create Site Endpoint
-      tags:
-      - sites
-  /api/sites/{site_id}:
-    patch:
-      description: Update a site's attributes, including approving it.
-      operationId: update_site_endpoint_api_sites__site_id__patch
-      parameters:
-      - in: path
-        name: site_id
-        required: true
-        schema:
-          title: Site Id
+components:
+  schemas:
+    AssignCraneIn:
+      properties:
+        site_id:
           type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SiteUpdate'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SiteOut'
-          description: Successful Response
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      summary: Update Site Endpoint
-      tags:
-      - sites
+          title: Site Id
+          description: Target site ID
+        crane_id:
+          type: string
+          title: Crane Id
+          description: Crane to assign
+        safety_manager_id:
+          type: string
+          title: Safety Manager Id
+          description: SAFETY_MANAGER user ID
+        start_date:
+          type: string
+          format: date
+          title: Start Date
+          description: Assignment start date
+        end_date:
+          anyOf:
+            - type: string
+              format: date
+            - type: 'null'
+          title: End Date
+          description: Assignment end date
+      type: object
+      required:
+        - site_id
+        - crane_id
+        - safety_manager_id
+        - start_date
+      title: AssignCraneIn
+      description: Schema for assigning a crane to a site.
+    AssignDriverIn:
+      properties:
+        site_crane_id:
+          type: string
+          title: Site Crane Id
+          description: Site-crane assignment ID
+        driver_id:
+          type: string
+          title: Driver Id
+          description: DRIVER user ID
+        start_date:
+          type: string
+          format: date
+          title: Start Date
+          description: Driver assignment start date
+        end_date:
+          anyOf:
+            - type: string
+              format: date
+            - type: 'null'
+          title: End Date
+          description: Driver assignment end date
+      type: object
+      required:
+        - site_crane_id
+        - driver_id
+        - start_date
+      title: AssignDriverIn
+      description: Schema for assigning a driver to a site-crane combination.
+    AssignmentResponse:
+      properties:
+        assignment_id:
+          type: string
+          title: Assignment Id
+          description: Created assignment ID
+      type: object
+      required:
+        - assignment_id
+      title: AssignmentResponse
+      description: Schema for crane assignment operation responses.
+    AttendanceIn:
+      properties:
+        driver_assignment_id:
+          type: string
+          title: Driver Assignment Id
+          description: Driver assignment ID
+        work_date:
+          type: string
+          format: date
+          title: Work Date
+          description: Work date
+        check_in_at:
+          type: string
+          format: date-time
+          title: Check In At
+          description: Check-in timestamp
+        check_out_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+          title: Check Out At
+          description: Check-out timestamp
+      type: object
+      required:
+        - driver_assignment_id
+        - work_date
+        - check_in_at
+      title: AttendanceIn
+      description: Schema for recording driver attendance.
+    AttendanceResponse:
+      properties:
+        attendance_id:
+          type: string
+          title: Attendance Id
+          description: Created attendance record ID
+      type: object
+      required:
+        - attendance_id
+      title: AttendanceResponse
+      description: Schema for attendance recording responses.
+    CraneModelOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        model_name:
+          type: string
+          title: Model Name
+        max_lifting_capacity_ton_m:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Max Lifting Capacity Ton M
+        max_working_height_m:
+          anyOf:
+            - type: number
+            - type: 'null'
+          title: Max Working Height M
+        max_working_radius_m:
+          anyOf:
+            - type: number
+            - type: 'null'
+          title: Max Working Radius M
+        optional_specs:
+          anyOf:
+            - items:
+                type: string
+              type: array
+            - type: 'null'
+          title: Optional Specs
+      type: object
+      required:
+        - id
+        - model_name
+      title: CraneModelOut
+      description: Schema for crane model specifications in API responses.
+    CraneOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        owner_org_id:
+          type: string
+          title: Owner Org Id
+        serial_no:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Serial No
+        status:
+          $ref: '#/components/schemas/CraneStatus'
+        model:
+          $ref: '#/components/schemas/CraneModelOut'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+        - id
+        - owner_org_id
+        - status
+        - model
+        - created_at
+        - updated_at
+      title: CraneOut
+      description: Schema for crane information in API responses.
+    CraneStatus:
+      type: string
+      enum:
+        - NORMAL
+        - REPAIR
+        - INBOUND
+      title: CraneStatus
+      description: Crane operational status values.
+    DocItemResponse:
+      properties:
+        item_id:
+          type: string
+          title: Item Id
+          description: Document item ID
+        status:
+          $ref: '#/components/schemas/DocItemStatus'
+          description: Current document status
+      type: object
+      required:
+        - item_id
+        - status
+      title: DocItemResponse
+      description: Schema for document review responses.
+    DocItemReviewIn:
+      properties:
+        item_id:
+          type: string
+          title: Item Id
+          description: Document item ID
+        reviewer_id:
+          type: string
+          title: Reviewer Id
+          description: SAFETY_MANAGER user ID
+        approve:
+          type: boolean
+          title: Approve
+          description: True to approve, False to reject
+      type: object
+      required:
+        - item_id
+        - reviewer_id
+        - approve
+      title: DocItemReviewIn
+      description: Schema for reviewing a document item.
+    DocItemStatus:
+      type: string
+      enum:
+        - PENDING
+        - SUBMITTED
+        - APPROVED
+        - REJECTED
+      title: DocItemStatus
+      description: Document item review status.
+    DocItemSubmitIn:
+      properties:
+        request_id:
+          type: string
+          title: Request Id
+          description: Document request ID
+        doc_type:
+          type: string
+          minLength: 1
+          title: Doc Type
+          description: Document type
+        file_url:
+          type: string
+          minLength: 1
+          format: uri
+          title: File Url
+          description: HTTPS URL to document file
+      type: object
+      required:
+        - request_id
+        - doc_type
+        - file_url
+      title: DocItemSubmitIn
+      description: Schema for submitting a document item.
+    DocRequestIn:
+      properties:
+        site_id:
+          type: string
+          title: Site Id
+          description: Site ID
+        driver_id:
+          type: string
+          title: Driver Id
+          description: Driver user ID
+        requested_by_id:
+          type: string
+          title: Requested By Id
+          description: SAFETY_MANAGER user ID
+        due_date:
+          anyOf:
+            - type: string
+              format: date
+            - type: 'null'
+          title: Due Date
+          description: Document submission due date
+      type: object
+      required:
+        - site_id
+        - driver_id
+        - requested_by_id
+      title: DocRequestIn
+      description: Schema for creating a document request.
+    DocRequestResponse:
+      properties:
+        request_id:
+          type: string
+          title: Request Id
+          description: Created document request ID
+      type: object
+      required:
+        - request_id
+      title: DocRequestResponse
+      description: Schema for document request creation responses.
+    DocSubmitResponse:
+      properties:
+        item_id:
+          type: string
+          title: Item Id
+          description: Created document item ID
+      type: object
+      required:
+        - item_id
+      title: DocSubmitResponse
+      description: Schema for document submission responses.
+    DriverAssignmentResponse:
+      properties:
+        driver_assignment_id:
+          type: string
+          title: Driver Assignment Id
+          description: Created driver assignment ID
+      type: object
+      required:
+        - driver_assignment_id
+      title: DriverAssignmentResponse
+      description: Schema for driver assignment operation responses.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthCheckResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+          description: Service status
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+          description: Current server time
+        database_healthy:
+          type: boolean
+          title: Database Healthy
+          description: Database connectivity status
+      type: object
+      required:
+        - status
+        - timestamp
+        - database_healthy
+      title: HealthCheckResponse
+      description: Schema for health check endpoint response.
+    OwnerStatsOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        total_cranes:
+          type: integer
+          title: Total Cranes
+        available_cranes:
+          type: integer
+          title: Available Cranes
+      type: object
+      required:
+        - id
+        - name
+        - total_cranes
+        - available_cranes
+      title: OwnerStatsOut
+      description: Schema for an owner organization with crane fleet statistics.
+    RequestCreate:
+      properties:
+        type:
+          $ref: '#/components/schemas/RequestType'
+        requester_id:
+          type: string
+          title: Requester Id
+        target_entity_id:
+          type: string
+          title: Target Entity Id
+        related_entity_id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Related Entity Id
+        notes:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Notes
+      type: object
+      required:
+        - type
+        - requester_id
+        - target_entity_id
+      title: RequestCreate
+      description: Schema for creating a generic request.
+    RequestOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        type:
+          $ref: '#/components/schemas/RequestType'
+        status:
+          $ref: '#/components/schemas/RequestStatus'
+        requester_id:
+          type: string
+          title: Requester Id
+        approver_id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Approver Id
+        target_entity_id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Target Entity Id
+        related_entity_id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Related Entity Id
+        notes:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Notes
+        requested_at:
+          type: string
+          format: date-time
+          title: Requested At
+        responded_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+          title: Responded At
+      type: object
+      required:
+        - id
+        - type
+        - status
+        - requester_id
+        - requested_at
+      title: RequestOut
+      description: Schema for request information in API responses.
+    RequestStatus:
+      type: string
+      enum:
+        - PENDING
+        - APPROVED
+        - REJECTED
+      title: RequestStatus
+      description: Generic request statuses.
+    RequestType:
+      type: string
+      enum:
+        - CRANE_DEPLOY
+      title: RequestType
+      description: Generic request types.
+    RequestUpdate:
+      properties:
+        status:
+          $ref: '#/components/schemas/RequestStatus'
+        approver_id:
+          type: string
+          title: Approver Id
+        notes:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Notes
+      type: object
+      required:
+        - status
+        - approver_id
+      title: RequestUpdate
+      description: Schema for approving or rejecting a request.
+    SiteApprove:
+      properties:
+        approved_by_id:
+          type: string
+          title: Approved By Id
+          description: MANUFACTURER user ID
+      type: object
+      required:
+        - approved_by_id
+      title: SiteApprove
+      description: Schema for approving a construction site.
+      example:
+        approved_by_id: manufacturer-uuid
+    SiteCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Name
+          description: Site name
+        address:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Address
+          description: Site address
+        start_date:
+          type: string
+          format: date
+          title: Start Date
+          description: Project start date
+        end_date:
+          type: string
+          format: date
+          title: End Date
+          description: Project end date
+        requested_by_id:
+          type: string
+          title: Requested By Id
+          description: SAFETY_MANAGER user ID
+      type: object
+      required:
+        - name
+        - start_date
+        - end_date
+        - requested_by_id
+      title: SiteCreate
+      description: Schema for creating a new construction site.
+      example:
+        address: 123 Main Street, Seoul
+        end_date: '2025-12-31'
+        name: Downtown Construction Site
+        requested_by_id: safety-manager-uuid
+        start_date: '2025-09-01'
+    SiteOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        address:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Address
+        start_date:
+          type: string
+          format: date
+          title: Start Date
+        end_date:
+          type: string
+          format: date
+          title: End Date
+        status:
+          $ref: '#/components/schemas/SiteStatus'
+        requested_by_id:
+          type: string
+          title: Requested By Id
+        approved_by_id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Approved By Id
+        requested_at:
+          type: string
+          format: date-time
+          title: Requested At
+        approved_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+          title: Approved At
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+        - id
+        - name
+        - start_date
+        - end_date
+        - status
+        - requested_by_id
+        - requested_at
+        - created_at
+        - updated_at
+      title: SiteOut
+      description: Schema for site information in API responses.
+    SiteStatus:
+      type: string
+      enum:
+        - PENDING_APPROVAL
+        - ACTIVE
+        - REJECTED
+        - COMPLETED
+      title: SiteStatus
+      description: Construction site status values.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
