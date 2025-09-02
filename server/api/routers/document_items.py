@@ -29,7 +29,7 @@ def submit_document_item_endpoint(payload: DocItemSubmitIn, db: Session = Depend
     return DocSubmitResponse(item_id=item.id)
 
 
-@router.patch("/{item_id}", response_model=DocItemResponse)
+@router.post("/{item_id}/review", response_model=DocItemResponse)
 def review_document_item_endpoint(
     item_id: str, payload: DocItemReviewIn, db: Session = Depends(get_db)
 ):
@@ -39,6 +39,6 @@ def review_document_item_endpoint(
     # The payload for review_in should not contain the item_id from the payload, but from the path.
     # The DocItemReviewIn schema does not have item_id, so we add it for the service.
     review_with_id = payload.dict()
-    review_with_id['item_id'] = itemId
+    review_with_id['item_id'] = item_id
     item = document_service.review_document_item(db=db, review_in=review_with_id)
     return DocItemResponse(item_id=item.id, status=item.status)
