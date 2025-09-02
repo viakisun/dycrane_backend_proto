@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
     response_model=DriverAssignmentResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_driver_assignment_endpoint(payload: AssignDriverIn, db: Session = Depends(get_db)):
+def create_driver_assignment_endpoint(
+    payload: AssignDriverIn, db: Session = Depends(get_db)
+):
     """
     Assign a driver to a site-crane combination.
     """

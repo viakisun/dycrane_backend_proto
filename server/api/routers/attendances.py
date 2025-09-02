@@ -10,6 +10,7 @@ from server.domain.services import attendance_service
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
 @router.post(
     "",
     response_model=AttendanceResponse,

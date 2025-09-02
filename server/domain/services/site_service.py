@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 
 from server.domain.models import Site
 from server.domain.repositories import site_repo
-from server.domain.schemas import SiteCreate, SiteUpdate, SiteStatus, UserRole
+from server.domain.schemas import SiteCreate, SiteStatus, SiteUpdate, UserRole
+
 from .user_service import UserService, user_service
 
 logger = logging.getLogger(__name__)

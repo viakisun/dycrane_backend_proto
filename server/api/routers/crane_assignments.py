@@ -11,10 +11,10 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post(
-    "", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED
-)
-def create_crane_assignment_endpoint(payload: AssignCraneIn, db: Session = Depends(get_db)):
+@router.post("", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED)
+def create_crane_assignment_endpoint(
+    payload: AssignCraneIn, db: Session = Depends(get_db)
+):
     """
     Create a new crane assignment to a site.
     """
