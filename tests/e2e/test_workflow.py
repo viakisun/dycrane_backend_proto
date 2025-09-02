@@ -32,8 +32,8 @@ def test_full_business_workflow(api_client: ApiClient):
     site_id = created_site["id"]
 
     # Step 2: Approve the site
-    approve_data = {"approved_by_id": MANUFACTURER_ID}
-    response = api_client.post(f"/api/sites/{site_id}/approve", data=approve_data)
+    approve_data = {"approved_by_id": MANUFACTURER_ID, "status": "ACTIVE"}
+    response = api_client.patch(f"/api/sites/{site_id}", data=approve_data)
     approved_site = assert_successful_response(response)
     assert approved_site["status"] == "ACTIVE"
 
@@ -54,7 +54,7 @@ def test_full_business_workflow(api_client: ApiClient):
         "start_date": start_date.isoformat(),
         "end_date": end_date.isoformat(),
     }
-    response = api_client.post("/api/assignments/crane", data=assign_crane_data)
+    response = api_client.post("/api/crane-assignments", data=assign_crane_data)
     crane_assignment = assert_successful_response(response, status_code=201)
     site_crane_id = crane_assignment['assignment_id']
 
@@ -65,7 +65,7 @@ def test_full_business_workflow(api_client: ApiClient):
         "start_date": start_date.isoformat(),
         "end_date": end_date.isoformat(),
     }
-    response = api_client.post("/api/assignments/driver", data=assign_driver_data)
+    response = api_client.post("/api/driver-assignments", data=assign_driver_data)
     driver_assignment = assert_successful_response(response, status_code=201)
     driver_assignment_id = driver_assignment['driver_assignment_id']
 
@@ -76,7 +76,7 @@ def test_full_business_workflow(api_client: ApiClient):
         "check_in_at": f"{start_date.isoformat()}T08:00:00Z",
         "check_out_at": f"{start_date.isoformat()}T17:00:00Z",
     }
-    response = api_client.post("/api/assignments/attendance", data=attendance_data)
+    response = api_client.post("/api/attendances", data=attendance_data)
     assert_successful_response(response, status_code=201)
 
     # Step 7: Request document
@@ -86,7 +86,7 @@ def test_full_business_workflow(api_client: ApiClient):
         "requested_by_id": SAFETY_MANAGER_ID,
         "due_date": end_date.isoformat(),
     }
-    response = api_client.post("/api/docs/requests", data=doc_request_data)
+    response = api_client.post("/api/document-requests", data=doc_request_data)
     doc_request = assert_successful_response(response, status_code=201)
     request_id = doc_request['request_id']
 
@@ -96,16 +96,15 @@ def test_full_business_workflow(api_client: ApiClient):
         "doc_type": "Safety Certificate",
         "file_url": "https://example.com/safety-cert.pdf"
     }
-    response = api_client.post("/api/docs/items/submit", data=doc_submit_data)
+    response = api_client.post("/api/document-items", data=doc_submit_data)
     doc_item = assert_successful_response(response, status_code=201)
     item_id = doc_item['item_id']
 
     # Step 9: Review document
     doc_review_data = {
-        "item_id": item_id,
         "reviewer_id": SAFETY_MANAGER_ID,
         "approve": True
     }
-    response = api_client.post("/api/docs/items/review", data=doc_review_data)
+    response = api_client.patch(f"/api/document-items/{item_id}", data=doc_review_data)
     reviewed_item = assert_successful_response(response)
     assert reviewed_item['status'] == 'APPROVED'
