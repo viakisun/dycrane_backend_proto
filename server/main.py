@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 
 from server.api.routes import api_router
 from server.config import settings
@@ -114,6 +114,21 @@ def create_app() -> FastAPI:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+    # Global error handling middleware
+    @app.middleware("http")
+    async def log_server_errors(request, call_next):
+        logger = logging.getLogger(__name__)
+        try:
+            return await call_next(request)
+        except Exception as e:
+            logger.error("="*30)
+            logger.error(f"Unhandled server error: {e}", exc_info=True)
+            logger.error("="*30)
+            return JSONResponse(
+                status_code=500,
+                content={"detail": "An internal server error occurred."},
+            )
 
     # Include API routes
     app.include_router(api_router)
