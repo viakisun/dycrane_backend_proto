@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     API_RELOAD: bool = False
     E2E_BASE_URL: str = "http://127.0.0.1:8000"
 
+    # Auth Configuration
+    AUTH_MODE: str = "dev"  # dev | strict
+    DEV_AUTH_BYPASS: bool = True
+
     # Database Configuration
     PGHOST: str = "localhost"
     PGPORT: int = 5432
