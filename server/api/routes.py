@@ -17,7 +17,7 @@ from server.api.routers import (
 api_router = APIRouter(prefix="/api/v1")
 
 # System and catalog routes
-api_router.include_router(health.router, prefix="/system", tags=["system"])
+api_router.include_router(health.router, prefix="/health", tags=["health"])
 api_router.include_router(
     crane_models.router, prefix="/catalog/crane-models", tags=["catalog"]
 )

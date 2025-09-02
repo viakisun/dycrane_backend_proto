@@ -34,7 +34,7 @@ def health_check_endpoint(db: Session = Depends(get_db)):
     return response
 
 
-@router.post("/tools/reset-transactional", status_code=204)
+@router.post("/reset-transactional", status_code=204)
 def reset_transactional_data_endpoint():
     """
     Reset only the transactional data in the database.
@@ -48,7 +48,7 @@ def reset_transactional_data_endpoint():
         raise
 
 
-@router.post("/tools/reset-full", status_code=204)
+@router.post("/reset-full", status_code=204)
 def reset_full_database_for_testing_endpoint():
     """
     Reset the entire database. FOR DEVELOPMENT/TESTING ONLY.
