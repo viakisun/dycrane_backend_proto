@@ -1,6 +1,5 @@
 import { apiAdapter } from '../transport/apiAdapter';
-import { StepInput, runStep } from './types';
-import { SiteStatus } from './enums';
+import { StepInput } from './types';
 
 type ApproveSiteInput = StepInput & {
   siteId: string;
@@ -15,9 +14,8 @@ export async function approveSite(input: ApproveSiteInput): Promise<void> {
   }
 
   const approveData = {
-    status: SiteStatus.ACTIVE,
     approved_by_id: manufacturer.id,
   };
 
-  await apiAdapter.patch('MANUFACTURER', `/sites/${siteId}`, approveData);
+  await apiAdapter.post('MANUFACTURER', `/sites/${siteId}/approve`, approveData);
 }
