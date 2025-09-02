@@ -106,7 +106,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         clearGeneralLogs();
         addGeneralLog({ actor: 'SYSTEM', summary: 'Resetting server state...' });
         try {
-            await apiAdapter.post('SYSTEM', '/health/reset-transactional');
+            await apiAdapter.post('SYSTEM', '/system/tools/reset-transactional');
             set(initialState);
             addGeneralLog({ actor: 'SYSTEM', summary: 'Server and client state reset successfully.' });
         } catch (error: any) {
