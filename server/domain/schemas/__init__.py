@@ -9,7 +9,7 @@ from .enums import (
     OrgType,
 )
 from .user import UserBase, UserCreate, UserUpdate
-from .site import SiteCreate, SiteUpdate, SiteApprove, SiteOut
+from .site import SiteCreate, SiteUpdate, SiteOut
 from .crane import (
     CraneModelOut,
     CraneOut,
@@ -70,7 +70,6 @@ __all__ = [
     # Site
     "SiteCreate",
     "SiteUpdate",
-    "SiteApprove",
     "SiteOut",
     # Crane
     "CraneModelOut",
