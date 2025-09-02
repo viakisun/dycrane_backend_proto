@@ -20,7 +20,7 @@ const CraneModelSearchPage: React.FC = () => {
             try {
                 setLoading(true);
                 // Add filter query params to the endpoint as needed
-                const response = await apiClient.get('/crane-models');
+                const response = await apiClient.get('/catalog/crane-models');
                 setModels(response.data);
                 setError(null);
             } catch (err) {

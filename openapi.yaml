@@ -2,74 +2,66 @@ openapi: 3.1.0
 info:
   title: DY Crane Safety Management API
   description: Crane safety management system
-  version: 1.0.0
+  version: "1.0.0"
 paths:
-  /api/health/:
+  /api/v1/system/health:
     get:
       tags:
-        - health
+        - system
       summary: Health Check
       description: Health check endpoint for service monitoring.
-      operationId: health_check_api_health__get
+      operationId: health_check
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthCheckResponse'
-  /api/health/reset-transactional:
+                $ref: "#/components/schemas/HealthCheckResponse"
+  /api/v1/system/tools/reset-transactional:
     post:
       tags:
-        - health
+        - system
       summary: Reset Transactional Data
       description: "Reset only the transactional data in the database.\nPreserves master data like users, cranes, etc."
-      operationId: reset_transactional_data_api_health_reset_transactional_post
+      operationId: reset_transactional_data
       responses:
-        '204':
+        "204":
           description: Successful Response
-  /api/health/reset-full:
+  /api/v1/system/tools/reset-full:
     post:
       tags:
-        - health
+        - system
       summary: Reset Full Database For Testing
       description: "Reset the entire database. FOR DEVELOPMENT/TESTING ONLY.\nWARNING: This is a destructive operation."
-      operationId: reset_full_database_for_testing_api_health_reset_full_post
+      operationId: reset_full_database
       responses:
-        '204':
+        "204":
           description: Successful Response
-  /api/sites/:
-    post:
-      tags:
-        - sites
-      summary: Create Site
-      description: Create a new construction site.
-      operationId: create_site_api_sites__post
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SiteCreate'
-      responses:
-        '201':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SiteOut'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/catalog/crane-models:
     get:
       tags:
-        - sites
+        - catalog
+      summary: List Crane Models
+      description: List all crane models with optional filtering.
+      operationId: list_crane_models
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/CraneModelOut"
+                type: array
+                title: Response List Crane Models
+  /api/v1/org/sites:
+    get:
+      tags:
+        - organization
       summary: List Sites
       description: "List all construction sites.\nIf 'mine' is true, returns only sites relevant to the user_id.\nNOTE: In a real app, user_id would come from an auth dependency."
-      operationId: list_sites_api_sites__get
+      operationId: list_sites
       parameters:
         - name: mine
           in: query
@@ -77,7 +69,7 @@ paths:
           schema:
             anyOf:
               - type: boolean
-              - type: 'null'
+              - type: "null"
             title: Mine
         - name: user_id
           in: query
@@ -85,31 +77,56 @@ paths:
           schema:
             anyOf:
               - type: string
-              - type: 'null'
+              - type: "null"
             title: User Id
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/SiteOut'
-                title: Response List Sites Api Sites  Get
-        '422':
+                  $ref: "#/components/schemas/SiteOut"
+                title: Response List Sites
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/cranes/:
+                $ref: "#/components/schemas/HTTPValidationError"
+    post:
+      tags:
+        - organization
+      summary: Create Site
+      description: Create a new construction site.
+      operationId: create_site
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteCreate"
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteOut"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/org/cranes:
     get:
       tags:
-        - cranes
+        - organization
       summary: List Cranes
       description: List all cranes with optional filtering.
-      operationId: list_cranes_api_cranes__get
+      operationId: list_cranes
       parameters:
         - name: owner_org_id
           in: query
@@ -117,15 +134,15 @@ paths:
           schema:
             anyOf:
               - type: string
-              - type: 'null'
+              - type: "null"
             title: Owner Org Id
         - name: status
           in: query
           required: false
           schema:
             anyOf:
-              - $ref: '#/components/schemas/CraneStatus'
-              - type: 'null'
+              - $ref: "#/components/schemas/CraneStatus"
+              - type: "null"
             title: Status
         - name: model_name
           in: query
@@ -133,7 +150,7 @@ paths:
           schema:
             anyOf:
               - type: string
-              - type: 'null'
+              - type: "null"
             title: Model Name
         - name: min_capacity
           in: query
@@ -141,79 +158,75 @@ paths:
           schema:
             anyOf:
               - type: integer
-              - type: 'null'
+              - type: "null"
             title: Min Capacity
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CraneOut'
-                title: Response List Cranes Api Cranes  Get
-        '422':
+                  $ref: "#/components/schemas/CraneOut"
+                title: Response List Cranes
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/crane-models/:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/org/owners:
     get:
       tags:
-        - crane-models
-      summary: List Crane Models
-      description: List all crane models with optional filtering.
-      operationId: list_crane_models_api_crane_models__get
+        - organization
+      summary: List Owners
+      description: "List all owners. If 'include=stats' is provided, includes statistics about their crane fleet."
+      operationId: list_owners
+      parameters:
+        - name: include
+          in: query
+          required: false
+          schema:
+            type: string
+            title: Include
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/CraneModelOut'
+                  $ref: "#/components/schemas/OwnerStatsOut"
                 type: array
-                title: Response List Crane Models Api Crane Models  Get
-  /api/owners/with-stats:
-    get:
-      tags:
-        - owners
-      summary: List Owners With Stats
-      description: List all owners with statistics about their crane fleet.
-      operationId: list_owners_with_stats_api_owners_with_stats_get
-      responses:
-        '200':
-          description: Successful Response
+                title: Response List Owners
+        "422":
+          description: Validation Error
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/OwnerStatsOut'
-                type: array
-                title: Response List Owners With Stats Api Owners With Stats Get
-  /api/owners/{owner_id}/cranes:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/org/owners/{ownerId}/cranes:
     get:
       tags:
-        - owners
+        - organization
       summary: List Owner Cranes
       description: List all cranes owned by a specific organization, with optional filters.
-      operationId: list_owner_cranes_api_owners__owner_id__cranes_get
+      operationId: list_owner_cranes
       parameters:
-        - name: owner_id
+        - name: ownerId
           in: path
           required: true
           schema:
             type: string
-            title: Owner Id
+            title: OwnerId
         - name: status
           in: query
           required: false
           schema:
             anyOf:
-              - $ref: '#/components/schemas/CraneStatus'
-              - type: 'null'
+              - $ref: "#/components/schemas/CraneStatus"
+              - type: "null"
             title: Status
         - name: model_name
           in: query
@@ -221,7 +234,7 @@ paths:
           schema:
             anyOf:
               - type: string
-              - type: 'null'
+              - type: "null"
             title: Model Name
         - name: min_capacity
           in: query
@@ -229,292 +242,246 @@ paths:
           schema:
             anyOf:
               - type: integer
-              - type: 'null'
+              - type: "null"
             title: Min Capacity
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CraneOut'
-                title: Response List Owner Cranes Api Owners  Owner Id  Cranes Get
-        '422':
+                  $ref: "#/components/schemas/CraneOut"
+                title: Response List Owner Cranes
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/owners/me/requests:
-    get:
-      tags:
-        - owners
-      summary: List My Requests
-      description: List requests for the current owner.
-      operationId: list_my_requests_api_owners_me_requests_get
-      parameters:
-        - name: user_id
-          in: query
-          required: true
-          schema:
-            type: string
-            title: User Id
-        - name: type
-          in: query
-          required: false
-          schema:
-            anyOf:
-              - $ref: '#/components/schemas/RequestType'
-              - type: 'null'
-            title: Type
-        - name: request_status
-          in: query
-          required: false
-          schema:
-            anyOf:
-              - $ref: '#/components/schemas/RequestStatus'
-              - type: 'null'
-            title: Request Status
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RequestOut'
-                title: Response List My Requests Api Owners Me Requests Get
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/crane-assignments/:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/ops/crane-deployments:
     post:
       tags:
-        - crane-assignments
+        - operations
       summary: Create Crane Assignment
       description: Create a new crane assignment to a site.
-      operationId: create_crane_assignment_api_crane_assignments__post
+      operationId: create_crane_assignment
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssignCraneIn'
+              $ref: "#/components/schemas/AssignCraneIn"
       responses:
-        '201':
+        "201":
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssignmentResponse'
-        '422':
+                $ref: "#/components/schemas/AssignmentResponse"
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/driver-assignments/:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/ops/driver-deployments:
     post:
       tags:
-        - driver-assignments
+        - operations
       summary: Create Driver Assignment
       description: Assign a driver to a site-crane combination.
-      operationId: create_driver_assignment_api_driver_assignments__post
+      operationId: create_driver_assignment
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssignDriverIn'
+              $ref: "#/components/schemas/AssignDriverIn"
       responses:
-        '201':
+        "201":
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DriverAssignmentResponse'
-        '422':
+                $ref: "#/components/schemas/DriverAssignmentResponse"
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/attendances/:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/ops/driver-attendance-logs:
     post:
       tags:
-        - attendances
+        - operations
       summary: Create Attendance
       description: Record a new attendance entry for a driver.
-      operationId: create_attendance_api_attendances__post
+      operationId: create_attendance
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AttendanceIn'
+              $ref: "#/components/schemas/AttendanceIn"
       responses:
-        '201':
+        "201":
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AttendanceResponse'
-        '422':
+                $ref: "#/components/schemas/AttendanceResponse"
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/document-requests/:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/compliance/document-requests:
     post:
       tags:
-        - document-requests
+        - compliance
       summary: Create Document Request
       description: Request a document from a driver.
-      operationId: create_document_request_api_document_requests__post
+      operationId: create_document_request
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DocRequestIn'
+              $ref: "#/components/schemas/DocRequestIn"
       responses:
-        '201':
+        "201":
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocRequestResponse'
-        '422':
+                $ref: "#/components/schemas/DocRequestResponse"
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/document-items/:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/compliance/document-items:
     post:
       tags:
-        - document-items
+        - compliance
       summary: Submit Document Item
       description: Submit a new document item.
-      operationId: submit_document_item_api_document_items__post
+      operationId: submit_document_item
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DocItemSubmitIn'
+              $ref: "#/components/schemas/DocItemSubmitIn"
       responses:
-        '201':
+        "201":
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocSubmitResponse'
-        '422':
+                $ref: "#/components/schemas/DocSubmitResponse"
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/document-items/{item_id}:
-    patch:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/compliance/document-items/{itemId}/review:
+    post:
       tags:
-        - document-items
+        - compliance
       summary: Review Document Item
       description: Review (approve or reject) a document item.
-      operationId: review_document_item_api_document_items__item_id__patch
+      operationId: review_document_item
       parameters:
-        - name: item_id
+        - name: itemId
           in: path
           required: true
           schema:
             type: string
-            title: Item Id
+            title: ItemId
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DocItemReviewIn'
+              $ref: "#/components/schemas/DocItemReviewIn"
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocItemResponse'
-        '422':
+                $ref: "#/components/schemas/DocItemResponse"
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/requests/:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/deploy/requests:
     post:
       tags:
-        - requests
+        - deployment
       summary: Create Request
       description: Create a new request, e.g. for crane deployment.
-      operationId: create_request_api_requests__post
+      operationId: create_request
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RequestCreate'
+              $ref: "#/components/schemas/RequestCreate"
       responses:
-        '201':
+        "201":
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestOut'
-        '422':
+                $ref: "#/components/schemas/RequestOut"
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/requests/{request_id}/respond:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/deploy/requests/{requestId}/responses:
     post:
       tags:
-        - requests
+        - deployment
       summary: Respond To Deployment Request
       description: "Approve or reject a deployment request.\nThis is typically done by an OWNER."
-      operationId: respond_to_deployment_request_api_requests__request_id__respond_post
+      operationId: respond_to_request
       parameters:
-        - name: request_id
+        - name: requestId
           in: path
           required: true
           schema:
             type: string
-            title: Request Id
+            title: RequestId
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RequestUpdate'
+              $ref: "#/components/schemas/RequestUpdate"
       responses:
-        '200':
+        "200":
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RequestOut'
-        '422':
+                $ref: "#/components/schemas/RequestOut"
+        "422":
           description: Validation Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HTTPValidationError'
+                $ref: "#/components/schemas/HTTPValidationError"
 components:
   schemas:
     AssignCraneIn:
@@ -540,7 +507,7 @@ components:
           anyOf:
             - type: string
               format: date
-            - type: 'null'
+            - type: "null"
           title: End Date
           description: Assignment end date
       type: object
@@ -570,7 +537,7 @@ components:
           anyOf:
             - type: string
               format: date
-            - type: 'null'
+            - type: "null"
           title: End Date
           description: Driver assignment end date
       type: object
@@ -611,7 +578,7 @@ components:
           anyOf:
             - type: string
               format: date-time
-            - type: 'null'
+            - type: "null"
           title: Check Out At
           description: Check-out timestamp
       type: object
@@ -643,24 +610,24 @@ components:
         max_lifting_capacity_ton_m:
           anyOf:
             - type: integer
-            - type: 'null'
+            - type: "null"
           title: Max Lifting Capacity Ton M
         max_working_height_m:
           anyOf:
             - type: number
-            - type: 'null'
+            - type: "null"
           title: Max Working Height M
         max_working_radius_m:
           anyOf:
             - type: number
-            - type: 'null'
+            - type: "null"
           title: Max Working Radius M
         optional_specs:
           anyOf:
             - items:
                 type: string
               type: array
-            - type: 'null'
+            - type: "null"
           title: Optional Specs
       type: object
       required:
@@ -679,12 +646,12 @@ components:
         serial_no:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Serial No
         status:
-          $ref: '#/components/schemas/CraneStatus'
+          $ref: "#/components/schemas/CraneStatus"
         model:
-          $ref: '#/components/schemas/CraneModelOut'
+          $ref: "#/components/schemas/CraneModelOut"
         created_at:
           type: string
           format: date-time
@@ -718,7 +685,7 @@ components:
           title: Item Id
           description: Document item ID
         status:
-          $ref: '#/components/schemas/DocItemStatus'
+          $ref: "#/components/schemas/DocItemStatus"
           description: Current document status
       type: object
       required:
@@ -798,7 +765,7 @@ components:
           anyOf:
             - type: string
               format: date
-            - type: 'null'
+            - type: "null"
           title: Due Date
           description: Document submission due date
       type: object
@@ -845,7 +812,7 @@ components:
       properties:
         detail:
           items:
-            $ref: '#/components/schemas/ValidationError'
+            $ref: "#/components/schemas/ValidationError"
           type: array
           title: Detail
       type: object
@@ -897,7 +864,7 @@ components:
     RequestCreate:
       properties:
         type:
-          $ref: '#/components/schemas/RequestType'
+          $ref: "#/components/schemas/RequestType"
         requester_id:
           type: string
           title: Requester Id
@@ -907,12 +874,12 @@ components:
         related_entity_id:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Related Entity Id
         notes:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Notes
       type: object
       required:
@@ -936,22 +903,22 @@ components:
         approver_id:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Approver Id
         target_entity_id:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Target Entity Id
         related_entity_id:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Related Entity Id
         notes:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Notes
         requested_at:
           type: string
@@ -961,7 +928,7 @@ components:
           anyOf:
             - type: string
               format: date-time
-            - type: 'null'
+            - type: "null"
           title: Responded At
       type: object
       required:
@@ -996,7 +963,7 @@ components:
         notes:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Notes
       type: object
       required:
@@ -1015,7 +982,7 @@ components:
         address:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Address
           description: Site address
         start_date:
@@ -1042,10 +1009,10 @@ components:
       description: Schema for creating a new construction site.
       example:
         address: 123 Main Street, Seoul
-        end_date: '2025-12-31'
+        end_date: "2025-12-31"
         name: Downtown Construction Site
         requested_by_id: safety-manager-uuid
-        start_date: '2025-09-01'
+        start_date: "2025-09-01"
     SiteOut:
       properties:
         id:
@@ -1057,7 +1024,7 @@ components:
         address:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Address
         start_date:
           type: string
@@ -1075,7 +1042,7 @@ components:
         approved_by_id:
           anyOf:
             - type: string
-            - type: 'null'
+            - type: "null"
           title: Approved By Id
         requested_at:
           type: string
@@ -1085,7 +1052,7 @@ components:
           anyOf:
             - type: string
               format: date-time
-            - type: 'null'
+            - type: "null"
           title: Approved At
         created_at:
           type: string

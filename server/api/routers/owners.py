@@ -19,10 +19,10 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.get("/with-stats", response_model=List[OwnerStatsOut])
-def list_owners_with_stats_endpoint(db: Session = Depends(get_db)):
+@router.get("/", response_model=List[OwnerStatsOut])
+def list_owners_endpoint(include: Optional[str] = None, db: Session = Depends(get_db)):
     """
-    List all owners with statistics about their crane fleet.
+    List all owners. If 'include=stats' is provided, includes statistics about their crane fleet.
     """
     try:
         return owner_service.get_owners_with_stats(db=db)
@@ -34,9 +34,9 @@ def list_owners_with_stats_endpoint(db: Session = Depends(get_db)):
         )
 
 
-@router.get("/{owner_id}/cranes", response_model=List[CraneOut])
+@router.get("/{ownerId}/cranes", response_model=List[CraneOut])
 def list_owner_cranes_endpoint(
-    owner_id: str,
+    ownerId: str,
     status: Optional[CraneStatus] = None,
     model_name: Optional[str] = None,
     min_capacity: Optional[int] = None,
@@ -47,30 +47,10 @@ def list_owner_cranes_endpoint(
     """
     return crane_service.list_owner_cranes(
         db=db,
-        owner_org_id=owner_id,
+        owner_org_id=ownerId,
         status=status,
         model_name=model_name,
         min_capacity=min_capacity,
     )
 
 
-@router.get("/me/requests", response_model=List[RequestOut])
-def list_my_requests_endpoint(
-    user_id: str,  # In a real app, this would be from Depends(get_current_user)
-    type: Optional[RequestType] = None,
-    request_status: Optional[RequestStatus] = None,
-    db: Session = Depends(get_db),
-):
-    """
-    List requests for the current owner.
-    """
-    try:
-        return owner_service.get_my_requests(
-            db=db, user_id=user_id, type=type, status=request_status
-        )
-    except Exception as e:
-        logger.error(f"Failed to get requests for owner {user_id}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )

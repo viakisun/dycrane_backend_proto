@@ -29,9 +29,9 @@ def create_request_endpoint(payload: RequestCreate, db: Session = Depends(get_db
         )
 
 
-@router.post("/{request_id}/respond", response_model=RequestOut)
+@router.post("/{requestId}/responses", response_model=RequestOut)
 def respond_to_request_endpoint(
-    request_id: str, payload: RequestUpdate, db: Session = Depends(get_db)
+    requestId: str, payload: RequestUpdate, db: Session = Depends(get_db)
 ):
     """
     Approve or reject a deployment request.
@@ -39,13 +39,13 @@ def respond_to_request_endpoint(
     """
     try:
         updated_request = request_service.respond_to_request(
-            db=db, request_id=request_id, response_in=payload
+            db=db, request_id=requestId, response_in=payload
         )
         return updated_request
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to respond to request {request_id}: {e}")
+        logger.error(f"Failed to respond to request {requestId}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",

@@ -25,8 +25,10 @@ const RequestsListPage: React.FC = () => {
         const fetchRequests = async () => {
             try {
                 setLoading(true);
-                const response = await apiClient.get('/owners/me/requests?type=CRANE_DEPLOY&status=PENDING&user_id=user-owner-01'); // Added user_id for now
-                setRequests(response.data);
+                // TODO: This endpoint was removed in the API refactoring.
+                // A new endpoint needs to be created or an alternative found.
+                // const response = await apiClient.get('/owners/me/requests?type=CRANE_DEPLOY&status=PENDING&user_id=user-owner-01');
+                setRequests(placeholderRequests); // Using placeholder data for now
                 setError(null);
             } catch (err) {
                 setError('Failed to fetch requests.');
@@ -46,7 +48,7 @@ const RequestsListPage: React.FC = () => {
                 approver_id: 'user-owner-01', // This should be the current user's ID
                 notes: approve ? 'Deployment approved.' : 'Deployment rejected.'
             };
-            await apiClient.post(`/requests/${requestId}/respond`, payload);
+            await apiClient.post(`/deploy/requests/${requestId}/responses`, payload);
 
             // Refresh list by filtering out the responded request
             setRequests(prev => prev.filter(req => req.id !== requestId));
