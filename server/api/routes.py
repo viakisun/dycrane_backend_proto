@@ -14,30 +14,39 @@ from server.api.routers import (
     sites,
 )
 
-api_router = APIRouter(prefix="/api")
+api_router = APIRouter(prefix="/api/v1")
 
-api_router.include_router(health.router, prefix="/health", tags=["health"])
-api_router.include_router(sites.router, prefix="/sites", tags=["sites"])
-api_router.include_router(cranes.router, prefix="/cranes", tags=["cranes"])
+# System and catalog routes
+api_router.include_router(health.router, prefix="/system", tags=["system"])
 api_router.include_router(
-    crane_models.router, prefix="/crane-models", tags=["crane-models"]
+    crane_models.router, prefix="/catalog/crane-models", tags=["catalog"]
 )
-api_router.include_router(owners.router, prefix="/owners", tags=["owners"])
+
+# Organization-related routes
+api_router.include_router(sites.router, prefix="/org/sites", tags=["organization"])
+api_router.include_router(cranes.router, prefix="/org/cranes", tags=["organization"])
+api_router.include_router(owners.router, prefix="/org/owners", tags=["organization"])
+
+# Operations routes
 api_router.include_router(
-    crane_assignments.router, prefix="/crane-assignments", tags=["crane-assignments"]
-)
-api_router.include_router(
-    driver_assignments.router,
-    prefix="/driver-assignments",
-    tags=["driver-assignments"],
-)
-api_router.include_router(
-    attendances.router, prefix="/attendances", tags=["attendances"]
+    crane_assignments.router, prefix="/ops/crane-deployments", tags=["operations"]
 )
 api_router.include_router(
-    document_requests.router, prefix="/document-requests", tags=["document-requests"]
+    driver_assignments.router, prefix="/ops/driver-deployments", tags=["operations"]
 )
 api_router.include_router(
-    document_items.router, prefix="/document-items", tags=["document-items"]
+    attendances.router, prefix="/ops/driver-attendance-logs", tags=["operations"]
 )
-api_router.include_router(requests.router, prefix="/requests", tags=["requests"])
+
+# Compliance routes
+api_router.include_router(
+    document_requests.router, prefix="/compliance/document-requests", tags=["compliance"]
+)
+api_router.include_router(
+    document_items.router, prefix="/compliance/document-items", tags=["compliance"]
+)
+
+# Deployment routes
+api_router.include_router(
+    requests.router, prefix="/deploy/requests", tags=["deployment"]
+)

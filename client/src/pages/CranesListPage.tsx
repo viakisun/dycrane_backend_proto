@@ -48,7 +48,7 @@ const CranesListPage: React.FC = () => {
                 if (filters.model_name) params.append('model_name', filters.model_name);
                 if (filters.min_capacity) params.append('min_capacity', filters.min_capacity);
 
-                const response = await apiClient.get(`/owners/${ownerId}/cranes?${params.toString()}`);
+                const response = await apiClient.get(`/org/owners/${ownerId}/cranes?${params.toString()}`);
                 setCranes(response.data);
                 setError(null);
             } catch (err) {
@@ -71,7 +71,7 @@ const CranesListPage: React.FC = () => {
         alert(`Requesting deployment for crane: ${craneId}`);
         // In a real implementation, this would open a modal or navigate to a new page
         // to collect details (e.g., site_id, notes) and then call the
-        // POST /api/cranes/{craneId}/deploy-requests endpoint.
+        // This has been replaced by POST /api/v1/deploy/requests
     };
 
     if (loading) return <div className="text-center text-cyan-glow">Loading Cranes...</div>;
