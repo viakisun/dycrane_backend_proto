@@ -1,6 +1,9 @@
 from fastapi import APIRouter
 
 from server.api.routers import (
+    auth,
+    me,
+    drivers,
     crane_assignments,
     driver_assignments,
     attendances,
@@ -15,6 +18,12 @@ from server.api.routers import (
 )
 
 api_router = APIRouter(prefix="/api/v1")
+
+# Auth & Users
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(me.router, prefix="/me", tags=["users"])
+api_router.include_router(drivers.router, prefix="/drivers", tags=["users"])
+
 
 # System and catalog routes
 api_router.include_router(health.router, prefix="/system", tags=["system"])
