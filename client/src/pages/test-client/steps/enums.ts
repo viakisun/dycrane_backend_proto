@@ -1,0 +1,6 @@
+export enum SiteStatus {
+    PENDING_APPROVAL = "PENDING_APPROVAL",
+    ACTIVE = "ACTIVE",
+    REJECTED = "REJECTED",
+    COMPLETED = "COMPLETED",
+}
