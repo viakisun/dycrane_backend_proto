@@ -13,7 +13,7 @@ from server.domain.schemas import (
     RequestStatus,
     RequestType,
 )
-from server.domain.services import crane_service, owner_service
+from server.domain.services import owner_service, crane_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

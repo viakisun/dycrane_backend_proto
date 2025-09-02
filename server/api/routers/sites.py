@@ -35,9 +35,7 @@ def list_sites_endpoint(
 
 
 @router.patch("/{site_id}", response_model=SiteOut)
-def update_site_endpoint(
-    site_id: str, payload: SiteUpdate, db: Session = Depends(get_db)
-):
+def update_site_endpoint(site_id: str, payload: SiteUpdate, db: Session = Depends(get_db)):
     """
     Update a site's attributes, including approving it.
     """

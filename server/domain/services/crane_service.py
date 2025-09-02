@@ -15,7 +15,7 @@ class CraneService:
         self,
         db: Session,
         *,
-        owner_org_id: Optional[str] = None,
+        owner_org_id: str,
         status: Optional[CraneStatus] = None,
         model_name: Optional[str] = None,
         min_capacity: Optional[int] = None,

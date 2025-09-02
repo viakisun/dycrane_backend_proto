@@ -21,9 +21,7 @@ logger = logging.getLogger(__name__)
     response_model=DocSubmitResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def submit_document_item_endpoint(
-    payload: DocItemSubmitIn, db: Session = Depends(get_db)
-):
+def submit_document_item_endpoint(payload: DocItemSubmitIn, db: Session = Depends(get_db)):
     """
     Submit a new document item.
     """
@@ -40,6 +38,6 @@ def review_document_item_endpoint(
     """
     # The payload for review_in should not contain the item_id, as it's in the path
     # We will create a new object without it to pass to the service.
-    review_data = payload.model_copy(update={"item_id": item_id})
+    review_data = payload.model_copy(update={'item_id': item_id})
     item = document_service.review_document_item(db=db, review_in=review_data)
     return DocItemResponse(item_id=item.id, status=item.status)

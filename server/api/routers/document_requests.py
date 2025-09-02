@@ -11,10 +11,10 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("", response_model=DocRequestResponse, status_code=status.HTTP_201_CREATED)
-def create_document_request_endpoint(
-    payload: DocRequestIn, db: Session = Depends(get_db)
-):
+@router.post(
+    "", response_model=DocRequestResponse, status_code=status.HTTP_201_CREATED
+)
+def create_document_request_endpoint(payload: DocRequestIn, db: Session = Depends(get_db)):
     """
     Request a document from a driver.
     """

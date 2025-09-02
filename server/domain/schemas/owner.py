@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+from .enums import OrgType
 
 
 class OwnerStatsOut(BaseModel):

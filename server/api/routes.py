@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
 from server.api.routers import (
-    attendances,
     crane_assignments,
+    driver_assignments,
+    attendances,
     crane_models,
     cranes,
-    document_items,
     document_requests,
-    driver_assignments,
+    document_items,
     health,
     owners,
     requests,

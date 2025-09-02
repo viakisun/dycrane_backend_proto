@@ -1,5 +1,4 @@
 import logging
-
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -30,15 +29,13 @@ class UserService:
                 detail=f"User {user_id} is inactive",
             )
         if user.role != expected_role:
-            detail_msg = (
-                f"User must have role {expected_role.value}, "
-                f"but has {user.role.value}"
-            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=detail_msg,
+                detail=f"User must have role {expected_role.value}, but has {user.role.value}",
             )
-        logger.info("User %s validated for role %s", user_id, expected_role.value)
+        logger.info(
+            "User %s validated for role %s", user_id, expected_role.value
+        )
         return user
 
 

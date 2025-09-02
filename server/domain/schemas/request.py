@@ -2,8 +2,7 @@ import datetime as dt
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
-
-from .enums import RequestStatus, RequestType
+from .enums import RequestType, RequestStatus
 
 
 class RequestCreate(BaseModel):
