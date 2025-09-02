@@ -26,7 +26,7 @@ export async function createSite(input: StepInput): Promise<CreateSiteOutput> {
     requested_by_id: safetyManager.id,
   };
 
-  const response = await apiAdapter.post('SAFETY_MANAGER', '/sites/', siteData);
+  const response = await apiAdapter.post('SAFETY_MANAGER', '/org/sites', siteData);
   const siteId = response.data.id;
 
   if (!siteId) {

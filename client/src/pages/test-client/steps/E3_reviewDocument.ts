@@ -19,5 +19,9 @@ export async function reviewDocument(input: ReviewDocumentInput): Promise<void> 
     approve: true,
   };
 
-  await apiAdapter.patch('SAFETY_MANAGER', `/document-items/${docItemId}`, docReviewData);
+  await apiAdapter.post(
+    'SAFETY_MANAGER',
+    `/compliance/document-items/${docItemId}/review`,
+    docReviewData
+  );
 }

@@ -19,5 +19,5 @@ export async function approveSite(input: ApproveSiteInput): Promise<void> {
     approved_by_id: manufacturer.id,
   };
 
-  await apiAdapter.patch('MANUFACTURER', `/sites/${siteId}`, approveData);
+  await apiAdapter.patch('MANUFACTURER', `/org/sites/${siteId}`, approveData);
 }

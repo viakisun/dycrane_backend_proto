@@ -13,7 +13,7 @@ export async function listOwnerCranes(input: StepInput): Promise<ListOwnerCranes
     throw new Error('Owner not found in context');
   }
 
-  const response = await apiAdapter.get('OWNER', `/owners/${owner.orgId}/cranes`);
+  const response = await apiAdapter.get('OWNER', `/org/owners/${owner.orgId}/cranes`);
   const cranes = response.data;
 
   if (!cranes || cranes.length === 0) {
