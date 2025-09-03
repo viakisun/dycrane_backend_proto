@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     APP_DESCRIPTION: str = "Crane safety management system"
     ENVIRONMENT: str = "development"
 
+    # Auth Settings
+    AUTH_MODE: str = "strict"  # "dev" or "strict"
+    DEV_AUTH_BYPASS: bool = False
+
     # API Configuration
     API_HOST: str = "127.0.0.1"
     API_PORT: int = 8000

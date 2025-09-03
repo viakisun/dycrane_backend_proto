@@ -38,6 +38,114 @@ paths:
       responses:
         "204":
           description: Successful Response
+  /api/v1/auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login for Access Token
+      description: "User login to get an access token. DEV mode behavior: Any email/password is accepted. Roles are assigned based on email patterns (driver@, owner@, safety@). TODO(strict): Will be replaced with actual credential validation."
+      operationId: login_for_access_token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/auth/refresh:
+    post:
+      tags:
+        - auth
+      summary: Refresh Access Token
+      description: "DEV mode: Returns a new dummy access token. TODO(strict): Will be replaced with actual refresh token validation."
+      operationId: refresh_access_token
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Unauthorized
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - auth
+      summary: Logout
+      description: "DEV mode: Returns 204 No Content. TODO(strict): Will implement server-side token invalidation."
+      operationId: logout
+      responses:
+        "204":
+          description: Successful Response
+  /api/v1/me:
+    get:
+      tags:
+        - users
+      summary: Get Current User
+      description: "Get the profile of the currently authenticated user. DEV mode: User context is derived from `Authorization: Bearer dev:{user_id}:{roles}` header. TODO(strict): User context will be from a validated JWT."
+      operationId: read_current_user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+  /api/v1/me/permissions:
+    get:
+      tags:
+        - users
+      summary: Get Current User Permissions
+      description: "Get the permissions (scopes) for the current user. DEV mode: Returns hardcoded scopes based on roles. TODO(strict): Will be replaced by a real policy service."
+      operationId: read_current_user_permissions
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permissions"
+        "401":
+          description: Unauthorized
+  /api/v1/me/bootstrap:
+    get:
+      tags:
+        - users
+      summary: Get Bootstrap Data
+      description: "Get initial data for the UI shell. DEV mode: Returns static dummy data. TODO(strict): Will be replaced by real data queries."
+      operationId: get_bootstrap_data
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bootstrap"
+        "401":
+          description: Unauthorized
   /api/v1/catalog/crane-models:
     get:
       tags:
@@ -482,7 +590,72 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
+  /api/v1/drivers/{driver_id}/active-assignments-sample:
+    get:
+      tags:
+        - _samples
+      summary: (Sample) Get Driver's Active Assignments
+      description: "Sample endpoint requiring DRIVER role. Returns dummy data. DEV mode behavior is to check for a 'DRIVER' role in the dev token."
+      operationId: list_driver_active_assignments_sample
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: driver_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful Response
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+  /api/v1/owners/{owner_id}/cranes-summary-sample:
+    get:
+      tags:
+        - _samples
+      summary: (Sample) Get Owner's Crane Summary
+      description: "Sample endpoint requiring OWNER role. Returns dummy data. DEV mode behavior is to check for an 'OWNER' role in the dev token."
+      operationId: list_owner_cranes_summary_sample
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: owner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful Response
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+  /api/v1/sites-sample:
+    get:
+      tags:
+        - _samples
+      summary: (Sample) Get Managed Sites
+      description: "Sample endpoint requiring SAFETY_MANAGER role. Returns dummy data. DEV mode behavior is to check for a 'SAFETY_MANAGER' role in the dev token."
+      operationId: list_managed_sites_sample
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful Response
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: "Bearer token authentication. In DEV mode, use a token like `dev:user-id:ROLE1,ROLE2`."
   schemas:
     AssignCraneIn:
       properties:
@@ -599,6 +772,22 @@ components:
         - attendance_id
       title: AttendanceResponse
       description: Schema for attendance recording responses.
+    Bootstrap:
+      type: object
+      title: Bootstrap
+      required:
+        - notifications_unread
+        - recent_task_ids
+      properties:
+        notifications_unread:
+          type: integer
+          default: 0
+        recent_task_ids:
+          type: array
+          items:
+            type: string
+          default: []
+      description: Schema for initial application bootstrap data.
     CraneModelOut:
       properties:
         id:
@@ -839,6 +1028,47 @@ components:
         - database_healthy
       title: HealthCheckResponse
       description: Schema for health check endpoint response.
+    LoginRequest:
+      type: object
+      title: LoginRequest
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+      description: Schema for user login request.
+    LoginResponse:
+      type: object
+      title: LoginResponse
+      required:
+        - access_token
+        - user
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+          nullable: true
+        expires_in:
+          type: integer
+          default: 3600
+        token_type:
+          type: string
+          default: Bearer
+        user:
+          $ref: "#/components/schemas/UserIdentity"
+        capabilities:
+          type: object
+          nullable: true
+        server_time:
+          type: string
+          format: date-time
+      description: Schema for the response after a successful login.
     OwnerStatsOut:
       properties:
         id:
@@ -861,6 +1091,17 @@ components:
         - available_cranes
       title: OwnerStatsOut
       description: Schema for an owner organization with crane fleet statistics.
+    Permissions:
+      type: object
+      title: Permissions
+      required:
+        - scopes
+      properties:
+        scopes:
+          type: array
+          items:
+            type: string
+      description: Schema for user permissions returned by /api/v1/me/permissions
     RequestCreate:
       properties:
         type:
@@ -1084,6 +1325,55 @@ components:
         - COMPLETED
       title: SiteStatus
       description: Construction site status values.
+    User:
+      type: object
+      title: User
+      required:
+        - id
+        - roles
+        - is_active
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        roles:
+          type: array
+          items:
+            type: string
+        org_ids:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+          default: true
+      description: Schema for user details returned by /api/v1/me
+    UserIdentity:
+      type: object
+      title: UserIdentity
+      required:
+        - id
+        - roles
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          nullable: true
+        roles:
+          type: array
+          items:
+            type: string
+      description: Represents the user's identity included in the login response.
     ValidationError:
       properties:
         loc:

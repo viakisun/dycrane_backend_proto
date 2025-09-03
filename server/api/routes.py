@@ -12,9 +12,16 @@ from server.api.routers import (
     owners,
     requests,
     sites,
+    role_samples,
 )
+from server.auth import routes as auth_routes
+from server.users import routes_me
 
 api_router = APIRouter(prefix="/api/v1")
+
+# Auth and User routes
+api_router.include_router(auth_routes.router, prefix="/auth", tags=["auth"])
+api_router.include_router(routes_me.router, prefix="/me", tags=["users"])
 
 # System and catalog routes
 api_router.include_router(health.router, prefix="/system", tags=["system"])
@@ -50,3 +57,6 @@ api_router.include_router(
 api_router.include_router(
     requests.router, prefix="/deploy/requests", tags=["deployment"]
 )
+
+# Sample routes for demonstrating RBAC
+api_router.include_router(role_samples.router)
