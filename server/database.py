@@ -157,14 +157,19 @@ db_manager = DatabaseManager()
 # Convenience function for FastAPI dependency injection
 def get_db():
     """Database session dependency for FastAPI endpoints."""
+    logger.debug("Database session requested.")
     if not db_manager.SessionLocal:
+        logger.error("Database not initialized, cannot create session.")
         raise RuntimeError("Database not initialized")
 
     session = db_manager.SessionLocal()
     try:
+        logger.debug(f"Database session {id(session)} created and yielded.")
         yield session
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error in DB session {id(session)}, rolling back.", exc_info=True)
         session.rollback()
         raise
     finally:
+        logger.debug(f"Closing database session {id(session)}.")
         session.close()

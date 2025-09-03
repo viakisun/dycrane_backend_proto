@@ -115,6 +115,16 @@ def create_app() -> FastAPI:
             allow_headers=["*"],
         )
 
+    # Logging middleware to trace requests
+    @app.middleware("http")
+    async def log_requests(request, call_next):
+        logger = logging.getLogger(__name__)
+        logger.info(f"--> Request: {request.method} {request.url.path}")
+        logger.info(f"    Headers: {request.headers}")
+        response = await call_next(request)
+        logger.info(f"<-- Response: {response.status_code}")
+        return response
+
     # Global error handling middleware
     @app.middleware("http")
     async def log_server_errors(request, call_next):

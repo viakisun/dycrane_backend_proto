@@ -30,6 +30,7 @@ def get_current_user(request: Request) -> UserContext:
     In 'dev' mode, it constructs a user context from special headers.
     In 'strict' mode, it will be replaced with JWT validation.
     """
+    logger.debug("Attempting to get current user context...")
     if settings.AUTH_MODE != "dev":
         # TODO(strict): Implement JWT decoding and validation here.
         # This includes fetching the public key, verifying the signature,
@@ -75,12 +76,14 @@ def get_current_user(request: Request) -> UserContext:
     # TODO(strict): In strict mode, user details (email, name) should be fetched
     # from the database (ops.users) based on the user_id from the JWT.
     # For now, we use dummy data.
-    return UserContext(
+    user_context = UserContext(
         id=user_id,
         roles=roles,
         email=f"{user_id.split('-')[0]}@example.dev",
         name=f"Dev User {user_id}",
     )
+    logger.debug(f"Successfully created user context: {user_context.id}, roles={user_context.roles}")
+    return user_context
 
 
 # For convenience, create a dependency instance
