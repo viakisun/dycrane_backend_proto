@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { WORKFLOW_STEPS } from '../workflow-def';
 export type { StepStatus } from './workflowStore';
+import { prepareSessions } from '../steps/A1_prepareSessions';
 import { createSite } from '../steps/B1_createSite';
 import { approveSite } from '../steps/B2_approveSite';
 import { listOwnerCranes } from '../steps/C1_listOwnerCranes';
@@ -51,6 +52,7 @@ type WorkflowState = {
 };
 
 const stepFunctions: { [key: string]: (input: any) => Promise<any> } = {
+  A1: prepareSessions,
   B1: createSite,
   B2: approveSite,
   C1: listOwnerCranes,
