@@ -2,7 +2,7 @@ import { apiAdapter } from '../transport/apiAdapter';
 import { StepInput, StepOutput } from './types';
 
 const USER_ROLE = 'DRIVER';
-const USER_EMAIL = 'driver1@dy.local';
+const USER_EMAIL = 'driver1@example.com';
 
 export async function driverLogin(input: StepInput): Promise<StepOutput> {
   const { addLog } = input.actions;
