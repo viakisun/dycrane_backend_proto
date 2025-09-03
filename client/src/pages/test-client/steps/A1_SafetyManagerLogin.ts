@@ -2,7 +2,7 @@ import { apiAdapter } from '../transport/apiAdapter';
 import { StepInput, StepOutput } from './types';
 
 const USER_ROLE = 'SAFETY_MANAGER';
-const USER_EMAIL = 'safety1@dy.local';
+const USER_EMAIL = 'safety1@example.com';
 
 export async function safetyManagerLogin(input: StepInput): Promise<StepOutput> {
   const { addLog } = input.actions;

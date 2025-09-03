@@ -32,16 +32,16 @@ ORGS = [
 ]
 
 USERS = [
-    {"id": "user-safety-manager-01", "email": "safety1@dy.local", "name": "Safety Manager One", "role": UserRole.SAFETY_MANAGER},
-    {"id": "user-manufacturer-01", "email": "mfr1@dy.local", "name": "Manufacturer Admin", "role": UserRole.MANUFACTURER, "org_id": "org-mfg-01"},
-    {"id": "user-owner-01", "email": "owner1@dy.local", "name": "Owner One (Total)", "role": UserRole.OWNER, "org_id": "org-owner-01"},
-    {"id": "user-owner-02", "email": "owner2@dy.local", "name": "Owner Two (Apex)", "role": UserRole.OWNER, "org_id": "org-owner-02"},
-    {"id": "user-owner-03", "email": "owner3@dy.local", "name": "Owner Three (Summit)", "role": UserRole.OWNER, "org_id": "org-owner-03"},
-    {"id": "user-owner-04", "email": "owner4@dy.local", "name": "Owner Four (Bedrock)", "role": UserRole.OWNER, "org_id": "org-owner-04"},
-    {"id": "user-owner-05", "email": "owner5@dy.local", "name": "Owner Five (SkyHigh)", "role": UserRole.OWNER, "org_id": "org-owner-05"},
-    {"id": "user-driver-01", "email": "driver1@dy.local", "name": "Driver A", "role": UserRole.DRIVER},
-    {"id": "user-driver-02", "email": "driver2@dy.local", "name": "Driver B", "role": UserRole.DRIVER},
-    {"id": "user-driver-03", "email": "driver3@dy.local", "name": "Driver C", "role": UserRole.DRIVER},
+    {"id": "user-safety-manager-01", "email": "safety1@example.com", "name": "Safety Manager One", "role": UserRole.SAFETY_MANAGER},
+    {"id": "user-manufacturer-01", "email": "mfr1@example.com", "name": "Manufacturer Admin", "role": UserRole.MANUFACTURER, "org_id": "org-mfg-01"},
+    {"id": "user-owner-01", "email": "owner1@example.com", "name": "Owner One (Total)", "role": UserRole.OWNER, "org_id": "org-owner-01"},
+    {"id": "user-owner-02", "email": "owner2@example.com", "name": "Owner Two (Apex)", "role": UserRole.OWNER, "org_id": "org-owner-02"},
+    {"id": "user-owner-03", "email": "owner3@example.com", "name": "Owner Three (Summit)", "role": UserRole.OWNER, "org_id": "org-owner-03"},
+    {"id": "user-owner-04", "email": "owner4@example.com", "name": "Owner Four (Bedrock)", "role": UserRole.OWNER, "org_id": "org-owner-04"},
+    {"id": "user-owner-05", "email": "owner5@example.com", "name": "Owner Five (SkyHigh)", "role": UserRole.OWNER, "org_id": "org-owner-05"},
+    {"id": "user-driver-01", "email": "driver1@example.com", "name": "Driver A", "role": UserRole.DRIVER},
+    {"id": "user-driver-02", "email": "driver2@example.com", "name": "Driver B", "role": UserRole.DRIVER},
+    {"id": "user-driver-03", "email": "driver3@example.com", "name": "Driver C", "role": UserRole.DRIVER},
 ]
 
 CRANE_MODELS = [

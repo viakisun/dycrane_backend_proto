@@ -2,7 +2,7 @@ import { apiAdapter } from '../transport/apiAdapter';
 import { StepInput, StepOutput } from './types';
 
 const USER_ROLE = 'MANUFACTURER';
-const USER_EMAIL = 'mfr1@dy.local';
+const USER_EMAIL = 'mfr1@example.com';
 
 export async function manufacturerLogin(input: StepInput): Promise<StepOutput> {
   const { addLog } = input.actions;
