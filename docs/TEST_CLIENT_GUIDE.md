@@ -48,19 +48,27 @@ This section details each step of the main business workflow as represented in t
 
 ---
 
-### Phase A — Auth & Env
+### Phase A — Authentication
 
-#### **[A1] 역할별 로그인/세션 준비 (Prepare Sessions by Role)**
--   **Actor**: SM, MFR, OWN, DRV (Safety Manager, Manufacturer, Owner, Driver)
--   **Description**: Prepares the authentication sessions for all user roles that will be used in the scenario. It secures role-based tokens and minimal user profiles, allowing subsequent steps to reference them via a shared context.
--   **Data Flow**:
-    -   **Out**: `tokens.*`, `users.*`
+The first phase of the workflow is to authenticate as the different user roles required for the subsequent steps. The test client now has three distinct login steps. It is recommended to run these three steps first before proceeding with the rest of the workflow.
 
-#### **[A2] 환경/스키마 확인 (Check Environment/Schema)**
--   **Actor**: SYSTEM
--   **Description**: Performs a preliminary check on service availability and the existence of necessary database schemas, views, and indexes. Any missing items are recorded as a checklist for server/DB enhancement work (no immediate modifications are made).
+#### **[A1] 안전관리자 로그인 (Safety Manager Login)**
+-   **Actor**: SM (Safety Manager)
+-   **Description**: Logs in as the Safety Manager. This user is responsible for creating sites and managing documents. The authentication token is stored in the context for later steps.
 -   **Data Flow**:
-    -   **Out**: `env.checklist`
+    -   **Out**: `users.SAFETY_MANAGER`
+
+#### **[A2] 제조사 로그인 (Manufacturer Login)**
+-   **Actor**: MFR (Manufacturer)
+-   **Description**: Logs in as the Manufacturer. This user is responsible for approving new sites.
+-   **Data Flow**:
+    -   **Out**: `users.MANUFACTURER`
+
+#### **[A3] 운전자 로그인 (Driver Login)**
+-   **Actor**: DRV (Driver)
+-   **Description**: Logs in as the Driver. This user is assigned to cranes and submits documents.
+-   **Data Flow**:
+    -   **Out**: `users.DRIVER`
 
 ---
 
