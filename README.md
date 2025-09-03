@@ -6,18 +6,19 @@ The primary goal of this project is to provide a robust, well-documented, and ma
 
 ## Project Documentation
 
-This project is documented across several files to provide clear, targeted information for different needs:
+This project's documentation is organized in the `docs/` directory.
 
 -   **[README.md](README.md)** (You are here): High-level overview and project entry point.
--   **[CONTRIBUTING.md](CONTRIBUTING.md)**: The essential guide for developers. Contains detailed instructions on setting up your local environment, running the application, and contributing to the project.
--   **[TEST_CLIENT_GUIDE.md](TEST_CLIENT_GUIDE.md)**: A detailed guide to the interactive `/test-client`, explaining each step of the business workflow (A1-F2) and how to use the UI.
--   **[WORKFLOW_DIAGRAM.md](WORKFLOW_DIAGRAM.md)**: A sequence diagram that visually represents the entire end-to-end workflow.
+-   **[CONTRIBUTING.md](docs/CONTRIBUTING.md)**: The essential guide for developers. Contains detailed instructions on setting up your local environment, running the application, and contributing to the project.
+-   **[TEST_CLIENT_GUIDE.md](docs/TEST_CLIENT_GUIDE.md)**: A detailed guide to the interactive `/test-client`, explaining each step of the business workflow.
+-   **[WORKFLOW_DIAGRAM.md](docs/WORKFLOW_DIAGRAM.md)**: A sequence diagram that visually represents the entire end-to-end workflow.
+-   **[API_RULEBOOK.md](docs/API_RULEBOOK.md)**: The rules and conventions for API design.
+-   **[RELEASES.md](docs/RELEASES.md)**: Contains release notes and a summary of changes for each version.
 -   **[openapi.yaml](openapi.yaml)**: The full OpenAPI (Swagger) specification for the backend API.
--   **[RELEASES.md](RELEASES.md)**: Contains release notes and a summary of changes for each version.
 
 ## Quick Start
 
-For the full development setup guide, please see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+For the full development setup guide, please see **[CONTRIBUTING.md](docs/CONTRIBUTING.md)**.
 
 Here is a brief overview of the steps:
 
@@ -56,7 +57,7 @@ Navigate to `http://localhost:3000/test-client` in your browser to access the in
 -   **"Auto Run All"**: Executes the entire A1-F2 workflow.
 -   **"Reset Workflow Data"**: Before running the workflow, especially for a second time, press this button. It clears all previous transactional data from the server to prevent `409 Conflict` errors.
 
-For a full explanation of each step and how to use the client, please read the **[TEST_CLIENT_GUIDE.md](TEST_CLIENT_GUIDE.md)**.
+For a full explanation of each step and how to use the client, please read the **[TEST_CLIENT_GUIDE.md](docs/TEST_CLIENT_GUIDE.md)**.
 
 ## Project Structure
 
@@ -71,4 +72,4 @@ The project is organized into a layered architecture for the backend and a moder
 -   `scripts/`: Helper scripts for development and database management.
 -   `tests/`: E2E and unit tests.
 
-We encourage you to read **[CONTRIBUTING.md](CONTRIBUTING.md)** for a deeper dive into the project structure and our development practices.
+We encourage you to read **[CONTRIBUTING.md](docs/CONTRIBUTING.md)** for a deeper dive into the project structure and our development practices.
