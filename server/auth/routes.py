@@ -1,10 +1,13 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Response, status, Depends
+from fastapi import APIRouter, Response, status, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 from server.auth.context import UserContext, get_current_user
 from server.core.security import create_dev_access_token
+from server.database import get_db
+from server.domain.repositories import user_repo
 from server.domain.schemas.auth import (
     LoginRequest,
     LoginResponse,
@@ -13,31 +16,43 @@ from server.domain.schemas.auth import (
 
 router = APIRouter()
 
+
 # TODO(strict): Add rate limiting to login endpoints.
 # TODO(strict): Add password hash verification (e.g., argon2).
 @router.post("/login", response_model=LoginResponse)
-async def login_for_access_token(request: LoginRequest):
+async def login_for_access_token(
+    request: LoginRequest, db: Session = Depends(get_db)
+):
     """
-    DEV mode login. Generates a dummy token based on email patterns.
+    Authenticates a user and returns an access token.
+    - Looks up the user by email.
+    - In this version, password is not checked.
+    - If user is found and active, generates a DEV access token.
     """
-    email_prefix = request.email.split("@")[0]
-    roles = ["USER"]  # Default role
-    if "driver" in email_prefix:
-        roles = ["DRIVER"]
-    elif "owner" in email_prefix:
-        roles = ["OWNER"]
-    elif "safety" in email_prefix:
-        roles = ["SAFETY_MANAGER"]
+    user = user_repo.get_by_email(db, email=request.email)
 
-    # TODO(strict): In strict mode, user_id would come from a database lookup.
-    user_id = str(uuid.uuid4())
-    user = UserIdentity(id=user_id, email=request.email, name=f"Dev User", roles=roles)
+    if not user or not user.is_active:
+        # Note: It's good practice to use a generic error message
+        # to avoid leaking information about which accounts exist.
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    access_token = create_dev_access_token(user_id=user.id, roles=user.roles)
+    # The user's role from the DB is an enum, so we get its value.
+    # The token expects a list of roles, so we wrap it in a list.
+    roles = [user.role.value]
+
+    user_identity = UserIdentity(
+        id=user.id, email=user.email, name=user.name, roles=roles
+    )
+
+    access_token = create_dev_access_token(user_id=user.id, roles=roles)
 
     return LoginResponse(
         access_token=access_token,
-        user=user,
+        user=user_identity,
         server_time=datetime.now(timezone.utc),
     )
 
