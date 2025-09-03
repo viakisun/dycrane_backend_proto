@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { WORKFLOW_STEPS } from '../workflow-def';
 export type { StepStatus } from './workflowStore';
-import { prepareSessions } from '../steps/A1_prepareSessions';
+import { safetyManagerLogin } from '../steps/A1_SafetyManagerLogin';
+import { manufacturerLogin } from '../steps/A2_ManufacturerLogin';
+import { driverLogin } from '../steps/A3_DriverLogin';
 import { createSite } from '../steps/B1_createSite';
 import { approveSite } from '../steps/B2_approveSite';
 import { listOwnerCranes } from '../steps/C1_listOwnerCranes';
@@ -52,7 +54,9 @@ type WorkflowState = {
 };
 
 const stepFunctions: { [key: string]: (input: any) => Promise<any> } = {
-  A1: prepareSessions,
+  A1: safetyManagerLogin,
+  A2: manufacturerLogin,
+  A3: driverLogin,
   B1: createSite,
   B2: approveSite,
   C1: listOwnerCranes,
@@ -152,7 +156,16 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         addGeneralLog({ actor: 'SYSTEM', summary: 'Starting full workflow execution...' });
         const { actions } = get();
 
+        // In the new multi-user workflow, we log in each user first.
+        const loginSteps = ['A1', 'A2', 'A3'];
+        for (const stepCode of loginSteps) {
+            if (get().error) break;
+            await actions.runStep(stepCode);
+        }
+
+        // Then run the rest of the steps
         for (const step of WORKFLOW_STEPS) {
+            if (loginSteps.includes(step.code)) continue; // Skip logins
             if (get().error) {
                 addGeneralLog({ actor: 'SYSTEM', summary: `Workflow aborted due to error in step ${step.code}.`, isError: true });
                 break;
